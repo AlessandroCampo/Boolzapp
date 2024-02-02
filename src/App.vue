@@ -1,5 +1,8 @@
 <template>
-  <div class="login-page" v-if="!logged">
+  <div v-if="loading" class="flex items-center justify-center h-screen">
+    <img src="../public/assets/boolzapp-high-resolution-logo-transparent.png" alt="logo" class="w-1/5 spinning">
+  </div>
+  <div class="login-page" v-else-if="!logged">
     <div class="card">
       <form @submit.prevent="login" v-if="!sign">
         <div class="title text-3xl">Login</div>
@@ -7,6 +10,10 @@
         <br />
         <input placeholder="Password" type="password" v-model="loginData.password" />
         <br />
+        <div class="flex items-center justify-center gap-3">
+          <input type="checkbox" id="rememberMe" @change="toggleRememberMe" class="w-fit scale-150">
+          <label for="rememberMe" class=" text-slate-400 text-xl"> Rimani collegato </label>
+        </div>
         <button type="submit" class="text-3xl">Login</button>
         <p class="text-slate-400 text-xl cursor-pointer" @click="logSign"> (Create a new account)</p>
       </form>
@@ -25,7 +32,7 @@
       </form>
     </div>
   </div>
-  <div id="app-container" class="w-2/3 h-full flex mx-auto py-6" v-else>
+  <div id="app-container" class="w-2/3 h-full flex mx-auto py-12" v-else>
     <div class="app-container-left w-1/2 flex flex-col relative">
       <div class="a-c-l-topbar h-[70px]  bg-slate-200 flex items-center justify-between gap-5 px-2 py-5 ">
         <div class="flex items-center text-2xl gap-2">
@@ -78,22 +85,23 @@
       <div class="off-canvas contacts">
         <div class="off-canvas-top-bar  h-[70px] bg-[#55e188] flex items-center gap-3">
           <i class="fas fa-arrow-left ms-4 cursor-pointer text-xl" @click="closeContacts"></i>
-          <h2 class="text-xl">NUOVA CHAT</h2>
+          <h2 class="text-xl w-1/3 overflow-hidden break-keep whitespace-nowrap opacity-0" ref="newChatTitle">NUOVA CHAT
+          </h2>
         </div>
         <div class="a-c-l-searchbar  bg-white  text-gray-400 px-4 py-1 text-xs flex items-center gap-3 border-b-2">
           <i class="fa-solid fa-magnifying-glass mt-[2px]"></i>
           <input type="text" name="" id="" placeholder="Cerca tra i contatti..." class="w-full px-2 py-1 text-xl"
             v-model="contactsFilterString">
         </div>
-        <div class="chat-left flex gap-3 py-2 px-4 border-b-2 items-center">
+        <div class="chat-left flex gap-3 py-2 px-4 border-b-2 items-center opacity-0" ref="addUserContainer">
           <img src="../public/assets/add-user.png" alt="" class="avatar cursor-pointer" @click="addUser">
           <div class="user-info text-xs flex flex-col w-3/4">
-            <span class="user-name text-gray-950 text-xl">
+            <span class="user-name text-gray-950 text-xl overflow-hidden break-keep whitespace-nowrap">
               Aggiungi nuovo utente
             </span>
             <div>
-              <input type="text" class="border-2 text-xl" v-model="addUserString">
-              <i class="fa-solid fa-circle-plus ms-3 text-2xl cursor-pointer" @click="addUser"></i>
+              <input type="text" class="border-2 text-xl w-1/2" v-model="addUserString">
+              <i class="fa-solid fa-circle-plus ms-3 text-2xl cursor-pointer w-1/5" @click="addUser"></i>
             </div>
 
           </div>
@@ -123,27 +131,29 @@
       </div>
       <div class="off-canvas profile">
         <div class="off-canvas-top-bar  h-[70px] bg-[#55e188] flex items-center gap-3">
-          <i class="fas fa-arrow-left ms-4 cursor-pointer" @click="closeProfile"></i>
-          <h2 class="text-sm">Profilo</h2>
+          <i class="fas fa-arrow-left ms-4 cursor-pointer text-2xl" @click="closeProfile"></i>
+          <h2 class="text-2xl w-1/4 opacity-0" ref="profileTitle">Profilo</h2>
         </div>
-        <div id="avatarInputContainer">
-          <input type="file" id="avatarInput" style="display: none" @change="onChangeFileUpload($event)">
+        <div id="avatarInputContainer" class="">
+          <input type=" file" id="avatarInput" style="display: none" @change="onChangeFileUpload($event)">
           <label for="avatarInput">
-            <figure>
+            <figure class="">
               <img :src="userData.avatarSrc ? userData.avatarSrc : '/assets/empty_avatar.png'" alt=""
-                class="rounded-full max-w-full cursor-pointer">
-              <div>
-                <i class="fas fa-camera text-xl"></i>
-                Cambia la tua immagine profilo
+                class="rounded-full cursor-pointer mt-4 w-full">
+              <div class="text-4xl">
+                <i class="fas fa-camera text-3xl mb-3"></i>
+                <span class="text-3xl w-2/3"> Cambia la tua immagine profilo</span>
               </div>
             </figure>
           </label>
         </div>
         <div>
-          <div class="text-green-600"> Mood </div>
-          <div class="flex justify-between items-center px-3">
-            <input type="text" disabled id="mood" v-model="moodChangeString">
-            <i class="fas fa-pencil cursor-pointer" @click="editMood"></i>
+
+          <div class="flex justify-around items-center px-3 mt-16 w-full opacity-0" ref="moodInput">
+            <div class="text-green-600 text-2xl"> Mood </div>
+            <input type="text" disabled id="mood" v-model="moodChangeString"
+              class="text-2xl border-2 px-2 py-1 border-gray-800">
+            <i class="fas fa-pencil cursor-pointer text-2xl" @click="editMood"></i>
           </div>
         </div>
       </div>
@@ -216,8 +226,9 @@
         <i class="fas fa-paper-plane text-gray-700 cursor-pointer text-xl" @click="sendMessage" v-else></i>
       </div>
     </div>
-    <div class="app-container-right w-2/3  flex flex-col items-center justify-center bg-lime-700 text-white" v-else>
-      <h3>
+    <div class="app-container-right w-2/3  flex flex-col items-center justify-center bg-slate-200 text-gray-700 " v-else>
+      <img src="../public/assets/boolzapp-high-resolution-logo-transparent.png" alt="" class="w-1/2 mb-20">
+      <h3 class="text-3xl">
         COMINCIA UNA NUOVA CHAT
       </h3>
     </div>
@@ -264,6 +275,7 @@ export default {
       uid: "",
       sign: false,
       logged: false,
+      loading: true,
       is_recording: false,
       can_record: false,
       recorder: null,
@@ -295,19 +307,17 @@ export default {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         // User is signed in
+        this.logged = true
+        this.loading = false
         this.currentUser = user;
         this.currentUserUid = user.uid
-        this.fetchUserData(user.uid); // Fetch user data based on UID
-        // const userCol = doc(db, "Users", this.currentUserUid);
-        // await updateDoc(userCol, {
-        //   "status": `Ultimo login: ${this.getCurrentDateTimeString()}`
-        // });
-
+        this.fetchUserData(user.uid);
 
       } else {
         // User is signed out
         this.currentUser = null;
         this.userData = null;
+        this.logged = false
       }
 
     });
@@ -389,7 +399,17 @@ export default {
     },
     openContacts() {
       let offc = document.querySelector(".off-canvas.contacts")
+      const chatTitle = this.$refs.newChatTitle
+      const addUsCont = this.$refs.addUserContainer
       offc.style.display = "block"
+      gsap.to(chatTitle, {
+        opacity: 1,
+        duration: 0.4
+      })
+      gsap.to(addUsCont, {
+        opacity: 1,
+        duration: 0.4
+      })
       gsap.to(offc, {
         width: "100%",
         duration: 0.5
@@ -397,6 +417,18 @@ export default {
     },
     closeContacts() {
       let offc = document.querySelector(".off-canvas.contacts")
+      const chatTitle = this.$refs.newChatTitle
+      const addUsCont = this.$refs.addUserContainer
+      setTimeout(() => {
+        gsap.to(chatTitle, {
+          opacity: 0,
+          duration: 0.2
+        })
+        gsap.to(addUsCont, {
+          opacity: 0,
+          duration: 0.2
+        })
+      }, 100)
       gsap.to(offc, {
         width: "0%",
         duration: 0.5,
@@ -407,6 +439,21 @@ export default {
     },
     openProfile() {
       let offc = document.querySelector(".off-canvas.profile")
+      const moodInput = this.$refs.moodInput
+      const profileTitle = this.$refs.profileTitle
+      setTimeout(() => {
+        gsap.to(profileTitle, {
+          opacity: 1,
+          duration: 0.2
+        })
+      }, 100)
+
+      gsap.to(moodInput, {
+        opacity: 1,
+        duration: 0.4
+      })
+      this.moodChangeString = this.userData.mood
+      console.log(this.moodChangeString)
       offc.style.display = "block"
       gsap.to(offc, {
         width: "100%",
@@ -415,6 +462,18 @@ export default {
     },
     closeProfile() {
       let offc = document.querySelector(".off-canvas.profile")
+      const moodInput = this.$refs.moodInput
+      const profileTitle = this.$refs.profileTitle
+      setTimeout(() => {
+        gsap.to(profileTitle, {
+          opacity: 0,
+          duration: 0.2
+        })
+      }, 100)
+      gsap.to(moodInput, {
+        opacity: 0,
+        duration: 0.5
+      })
       gsap.to(offc, {
         width: "0%",
         duration: 0.5,
@@ -570,8 +629,6 @@ export default {
         if (docSnap.exists()) {
           const unsub = onSnapshot(doc(db, "Users", uid), (doc) => {
             this.userData = doc.data()
-
-
           });
         } else {
           console.log("No such document!");
