@@ -5,7 +5,7 @@
 body {
     margin: 0px;
     width: 100vw;
-    min-height: 100vh;
+    min-height: 100dvh;
     /* fall-back */
     min-height: -moz-available;
     min-height: -webkit-fill-available;
@@ -15,11 +15,16 @@ body {
 #app {
     width: 100vw;
     height: 100vh;
-    min-height: 100vh;
+    min-height: 100dvh;
     /* fall-back */
     min-height: -moz-available;
     min-height: -webkit-fill-available;
     min-height: fill-available;
+}
+
+.a-c-r-message-box {
+    background-image: url("../public/assets/mine.jpg");
+    background-size: contain;
 }
 
 .login-page {
