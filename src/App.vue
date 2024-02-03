@@ -32,24 +32,25 @@
       </form>
     </div>
   </div>
-  <div id="app-container" class="w-2/3 h-full flex mx-auto py-12" v-else>
-    <div class="app-container-left w-1/3 flex flex-col relative">
-      <div class="a-c-l-topbar h-[70px]  bg-slate-200 flex items-center justify-between gap-5 px-2 py-5 ">
-        <div class="flex items-center text-2xl gap-2">
+  <div id="app-container" class="lg:w-3/4 lg:h-full flex mx-auto lg:py-12 h-screen w-screen" v-else>
+    <div class="app-container-left lg:w-1/3 lg:flex flex-col relative flex w-full" ref="appLeft">
+      <div class="a-c-l-topbar h-[70px]  bg-slate-200 flex items-center justify-between gap-5 px-2 py-5 w-full ">
+        <div class="flex items-center text-2xl gap-2 border-2 w-fit">
           <img :src="userData.avatarSrc ? userData.avatarSrc : `/assets/empty_avatar.png`" alt=""
             class="avatar cursor-pointer" @click="openProfile">
-          <span class="active-name" v-if="userData.username"> {{ userData.username }} </span>
+          <span class="active-name text-base lg:text-lg xl:text-xl " v-if="userData.username"> {{ userData.username }}
+          </span>
         </div>
 
-        <div class="top-icons flex gap-3 text-2xl  text-gray-400">
+        <div class="top-icons flex gap-1 lg:gap-3 text-xl  text-gray-400 border-2" ref="leftBar_icons">
           <i class="fas fa-address-book cursor-pointer me-4" @click="openContacts"></i>
           <i class="fas fa-bell-slash" @click="requestNotifications"></i>
         </div>
       </div>
       <div class="a-c-l-searchbar  bg-white  text-gray-400 px-4 py-1 flex items-center gap-3 border-b-2">
         <i class="fa-solid fa-magnifying-glass mt-[2px]"></i>
-        <input type="text" name="" id="" placeholder="Cerca o inizia una nuova chat" class="w-full px-2 py-1 text-xl "
-          v-model="chatFilterString">
+        <input type="text" name="" id="" placeholder="Cerca o inizia una nuova chat"
+          class="w-full px-2 py-1 text-base lg:text-lg xl:text-xl" v-model="chatFilterString">
       </div>
       <div class="a-c-l-chat-list flex-grow  bg-white scrollable-container">
         <div class="chat-left flex gap-3 py-2 px-6 border-b-2 items-center cursor-pointer w-full justify-around"
@@ -57,16 +58,17 @@
           v-show="user.username !== userData.username && userData.activeChats.includes(user.username) && (!chatFilterString || user.username.includes(chatFilterString.toLowerCase()))"
           @click="changeChat(index)">
           <img :src="user.avatarSrc ? user.avatarSrc : `../assets/empty_avatar.png`" alt="" class="avatar">
-          <div class="user-info text-xl flex flex-col w-3/4">
+          <div class="user-info text-base lg:text-lg xl:text-xl flex flex-col w-3/4">
             <span class="user-name text-gray-950">
               {{ user.username }}
             </span>
-            <span class="last-seen text-xs text-gray-400"
+            <span class="last-seen text-xs text-gray-400 flex items-center gap-2"
               v-if="user.messages[0] && user.messages[user.messages.length - 1].type === 'text'">
-              <span v-if="user.messages[user.messages.length - 1].media" class="font-bold text-gray-800"> <i
-                  class="fas fa-image text-xl"></i> </span>
               <span v-if="user.messages[user.messages.length - 1].from === currentUserUid"
                 class="font-bold text-gray-800"> INVIATO:</span>
+              <span v-if="user.messages[user.messages.length - 1].media" class="font-bold text-gray-800"> <i
+                  class="fas fa-image text-xl"></i> </span>
+
               {{
                 user.messages[user.messages.length - 1].text }}
             </span>
@@ -84,7 +86,7 @@
 
 
           </div>
-          <span class="text-lg text-gray-400 w-fit" v-if="user.messages[0]">
+          <span class="text-sm lg:text-lg xl:text-xl text-gray-400 w-fit" v-if="user.messages[0]">
 
             {{ user.messages[user.messages.length - 1].time.split(" ")[1] }}
           </span>
@@ -146,7 +148,7 @@
           <h2 class="text-2xl w-1/4 opacity-0" ref="profileTitle">Profilo</h2>
         </div>
         <div id="avatarInputContainer" class="">
-          <input type=" file" id="avatarInput" style="display: none" @change="onChangeFileUpload($event)">
+          <input type="file" id="avatarInput" style="display: none" @change="onChangeFileUpload($event)">
           <label for="avatarInput">
             <figure class="">
               <img :src="userData.avatarSrc ? userData.avatarSrc : '/assets/empty_avatar.png'" alt=""
@@ -160,36 +162,36 @@
         </div>
         <div>
 
-          <div class="flex justify-around items-center px-3 mt-16 w-full opacity-0" ref="moodInput">
+          <div class="flex justify-around items-center px-3 mt-16 w-full opacity-0 flex-col lg:flex-row" ref="moodInput">
             <div class="text-green-600 text-2xl"> Mood </div>
-            <input type="text" disabled id="mood" v-model="moodChangeString"
-              class="text-2xl border-2 px-2 py-1 border-gray-800">
-            <i class="fas fa-pencil cursor-pointer text-2xl" @click="editMood"></i>
+            <div class="gap-3 flex items-center">
+              <input type="text" disabled id="mood" v-model="moodChangeString"
+                class="text-2xl border-2 px-2 py-1 border-gray-800">
+              <i class="fas fa-pencil cursor-pointer text-2xl" @click="editMood"></i>
+            </div>
+
           </div>
         </div>
       </div>
     </div>
-    <div class="app-container-right w-2/3  flex flex-col" v-if="activeChat !== null">
+    <div class="app-container-right lg:w-2/3 w-full  flex flex-col" v-if="activeChat !== null" ref="appRight">
       <div class="a-c-r-topbar h-[70px]  bg-slate-200 flex items-center gap-5 px-2 py-5 border-l-2 border-l-gray-400">
         <img :src="users[activeChat].avatarSrc" alt="" class="avatar">
         <div class="user-info text-xs flex flex-col w-3/4">
-          <span class="user-name text-gray-950 text-2xl">
+          <span class="user-name text-gray-950 lg:text-2xl text-lg">
             {{ users[activeChat].username }}
           </span>
-          <span class="user-name text-gray-600 text-lg">
+          <span class="user-name text-gray-600 lg:text-lg text-regular">
             {{ users[activeChat].status }}
           </span>
           <!-- <span class="last-seen text-[8px] text-gray-400">
             Ultimo accesso 20 minuti fa
           </span> -->
         </div>
-        <!-- <div class="top-icons flex gap-3 text-xs  text-gray-400">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <i class="fa-solid fa-paperclip"></i>
-          <i class="fa-solid fa-ellipsis-vertical"></i>
-        </div> -->
+        <i class="fas fa-arrow-left lg:hidden me-3 text-xl" @click="openChats"></i>
       </div>
-      <div class="a-c-r-message-box flex-grow bg-slate-400 px-12 py-4 overflow-y-scroll relative scrollable-container">
+      <div
+        class="a-c-r-message-box flex-grow bg-slate-400 px-4 lg:px-12 py-4 overflow-y-scroll relative scrollable-container">
         <div id="emoji-container" class="notVisible">
           <div class="a-c-l-searchbar  bg-white  text-gray-400 px-4 py-1 text-xs flex items-center gap-3 border-b-2">
             <i class="fa-solid fa-magnifying-glass mt-[2px]"></i>
@@ -204,7 +206,7 @@
             </li>
           </ul>
         </div>
-        <div class="message" v-for="(message, index) in  userData.messages " :key="index" :class="{
+        <div class="message w-2/3 xl:w-2/5 lg:w-1/2" v-for="(message, index) in  userData.messages " :key="index" :class="{
           'from-user': currentUserUid !== message.to,
           'from-others': currentUserUid === message.to,
           'audio-content': message.type === 'audio'
@@ -214,30 +216,37 @@
             {{ message.text }}
             <img :src="message.media" alt="" v-if="message.media" class="w-1/2">
           </span>
-          <div class="audio-player" v-else-if="message.type === 'audio'">
+          <div class="audio-player w-full" v-else-if="message.type === 'audio'">
             <audio :src="message.text" controls class="audio-controls hidden" :id="`player${index}`"></audio>
-            <div class="audio-message flex items-center gap-2 justify-between">
+            <div class="audio-message flex items-center gap-3 lg:gap-6 justify-between">
               <div class="relative test py-2">
                 <img :src="currentUserUid === message.to ? users[activeChat].avatarSrc : userData.avatarSrc" alt=""
                   class="avatar w-full">
                 <span class="audioSpeed" @click="changeSpeed(index, $event)"> 1.0X</span>
               </div>
-
-              <i class="
+              <div class="flex items-center gap-1 justify-between">
+                <i class="
                 fas fa-play text-xl cursor-pointer" @click="playAudio(index, $event)"></i>
-              <input type="range" name="" :id="`slider${index}`" value=0 :max="message.duration" :ref="`slider${index}`">
-              <span>{{ formatTime(message.duration) }}</span>
+                <input type="range" name="" :id="`slider${index}`" value=0 :max="message.duration" :ref="`slider${index}`"
+                  class="w-[80px]">
+              </div>
+
+              <span class="text-sm xl:text-xl w-1/4">{{ formatTime(message.duration) }}</span>
             </div>
 
           </div>
 
+          <div class="message-time lg:text-xs text-xs flex items-center gap-2">
+            <span class=""> {{ message.time.split(" ")[1] }} </span>
+            <i class="fas fa-check-double" :class="message.seen ? 'text-blue-600' : 'text-gray-400'"
+              v-show="message.from === currentUserUid"></i>
+          </div>
 
-          <span class="message-time"> {{ message.time }} </span>
         </div>
 
       </div>
-      <div class="a-c-r-bottombar h-[70px]  bg-slate-200 flex items-center justify-around py-5">
-        <div class="bottom-bar-right-icon-container flex gap-5 h-[70px] items-center py-3">
+      <div class="a-c-r-bottombar h-[70px]  bg-slate-200 flex items-center justify-around py-5 px-3">
+        <div class="bottom-bar-left-icon-container flex gap-5 h-[70px] items-center py-3 w-1/5  justify-center">
           <i class="fa-regular fa-face-smile text-gray-700 cursor-pointer text-xl" @click="toggleEmojis"></i>
           <div class="h-full flex items-center">
             <input type="file" ref="sendMediaInput" @change="sendMedia($event)" style="display: none;">
@@ -251,15 +260,20 @@
 
         <input type=" text" placeholder="Scrivi un messaggio...." class="w-3/5 px-2 py-1 h-[50px] text-xl"
           v-model="currentText.text" @keyup.enter="sendMessage" ref="textBar" @input="isWriting">
-        <span v-show="is_recording" class="text-xl max-w-fit"> {{ formatTime(podcastDuration) }} </span>
-        <i class="fa-solid fa-microphone  text-gray-700 cursor-pointer text-xl" @click="toggleMic"
-          v-if="!currentText.text && !this.currentText.media"></i>
-        <i class="fas fa-paper-plane text-gray-700 cursor-pointer text-xl" @click="sendMessage" v-else></i>
+        <div class="bottom-bar-right w-1/5 flex items-center justify-center gap-2">
+          <span v-show="is_recording" class="text-xl max-w-fit"> {{ formatTime(podcastDuration) }} </span>
+          <i class="fa-solid fa-microphone  text-gray-700 cursor-pointer text-xl" @click="toggleMic"
+            v-if="!currentText.text && !this.currentText.media"></i>
+          <i class="fas fa-paper-plane text-gray-700 cursor-pointer text-xl" @click="sendMessage" v-else></i>
+        </div>
+
       </div>
     </div>
-    <div class="app-container-right w-2/3  flex flex-col items-center justify-center bg-slate-200 text-gray-700 " v-else>
+    <div
+      class="app-container-right lg:w-2/3 w-full flex-col items-center justify-center bg-slate-200 text-gray-700 hidden lg:flex"
+      v-else>
       <img src="../public/assets/boolzapp-high-resolution-logo-transparent.png" alt="" class="w-1/2 mb-20">
-      <h3 class="text-3xl">
+      <h3 class="lg:text-3xl text-xl">
         COMINCIA UNA NUOVA CHAT
       </h3>
     </div>
@@ -313,6 +327,7 @@ export default {
       podcastDuration: 0,
       podcastInterval: null,
       notifPermission: false,
+      screenWidth: window.innerWidth,
       ready: false,
       chuncks: [],
       collection: userCollection,
@@ -366,14 +381,13 @@ export default {
         this.currentUser = null;
         this.userData = null;
         this.loading = false
+        console.log(this.logged)
       }
 
     });
-
-
-
   },
   created() {
+    window.addEventListener("resize", this.handleResize)
     this.isWriting()
     this.retrieveData()
     fetch('https://emoji-api.com/emojis?access_key=be75f8e104ed4ec4c32d07788050d5a7c5306cbc')
@@ -383,8 +397,12 @@ export default {
       })
 
   },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.handleResize);
+  },
   methods: {
     async onChangeFileUpload(event) {
+      console.log("changing")
       const file = event.target.files[0];
       const reader = new FileReader();
       reader.onload = async () => {
@@ -409,7 +427,6 @@ export default {
         await setDoc(doc(db, "Users", user.uid), {
           username: this.user.username,
           avatarSrc: this.user.avatarSrc ? this.user.avatarSrc : "https://firebasestorage.googleapis.com/v0/b/boolzapp2.appspot.com/o/empty_avatar.png?alt=media&token=b5a843bc-29c0-4b91-ada1-d4a34d844fdc",
-          password: this.user.password,
           email: this.user.email,
           messages: [],
           contacts: [],
@@ -584,22 +601,36 @@ export default {
       }
       this.addUserString = ""
     },
-    changeChat(index) {
-
+    async changeChat(index) {
+      let appLeft = this.$refs.appLeft
+      let appRight = this.$refs.appRight
+      let icons = this.$refs.leftBar_icons
+      if (this.screenWidth <= 1024) {
+        gsap.to(appLeft, {
+          width: 0
+        })
+        gsap.to(appRight, {
+          width: "100%"
+        })
+      }
+      setTimeout(() => { icons.classList.add("hidden") }, 150)
+      setTimeout(() => { appLeft.classList.add("hidden") }, 400)
       this.activeChat = index
       this.currentChatUid = this.users[this.activeChat].id
+
     },
     async pushChat(index) {
-
-      const userCol = doc(db, "Users", this.currentUserUid)
       this.activeChat = index
+      const userCol = doc(db, "Users", this.currentUserUid)
       this.currentChatUid = this.users[this.activeChat].id
+
       this.currentChats.push(this.users[index].username)
       await updateDoc(userCol, {
         "activeChats": arrayUnion(
           this.users[index].username
         ),
       })
+
     },
     async sendMessage() {
       if (!this.currentText.text && !this.currentText.media) return
@@ -617,7 +648,8 @@ export default {
           to: this.currentChatUid,
           from: this.currentUserUid,
           from_name: this.userData.username,
-          media: this.currentText.media
+          media: this.currentText.media,
+          seen: false
         }),
       })
       await updateDoc(userCol, {
@@ -631,7 +663,8 @@ export default {
           to: this.currentChatUid,
           from: this.currentUserUid,
           from_name: this.userData.username,
-          media: this.currentText.media
+          media: this.currentText.media,
+          seen: false
         }),
       })
       await updateDoc(recipientCol, {
@@ -694,12 +727,15 @@ export default {
           console.log("No such document!");
         }
       } catch (error) {
-        this.logged = false
+
         console.error("Error fetching user data:", error);
+        this.logged = false
+        console.log(this.logged)
       }
 
     },
     setupAudio() {
+      console.log("setup")
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia({ audio: true }).then(this.setupStream).catch(err => {
           console.error(err)
@@ -741,7 +777,8 @@ export default {
               duration: storedDuration,
               to: this.currentChatUid,
               from: this.currentUserUid,
-              time: timeStamp
+              time: timeStamp,
+              seen: false
             }),
           })
           await updateDoc(recipientCol, {
@@ -751,7 +788,8 @@ export default {
               duration: storedDuration,
               to: this.currentChatUid,
               from: this.currentUserUid,
-              time: timeStamp
+              time: timeStamp,
+              seen: false
             }),
           })
           await updateDoc(recipientCol, {
@@ -770,6 +808,7 @@ export default {
       this.can_record = true
     },
     async toggleMic(e) {
+      console.log("mci")
       const userCol = doc(db, "Users", this.currentUserUid);
       if (!this.can_record) return
       this.is_recording = !this.is_recording
@@ -907,6 +946,12 @@ export default {
       console.log("clicked")
       this.$refs.sendMediaInput.click();
     },
+    triggerChangePropic() {
+
+      const input = document.getElementById("avatarInput")
+      console.log(input)
+      input.click();
+    },
     sendMedia(event) {
       const file = event.target.files[0];
       const reader = new FileReader();
@@ -916,26 +961,79 @@ export default {
         this.currentText.media = reader.result
       }
       reader.readAsDataURL(file);
-    }
+    },
+    openChats() {
+      let appLeft = this.$refs.appLeft
+      let appRight = this.$refs.appRight
+      let icons = this.$refs.leftBar_icons
+      icons.classList.remove("hidden")
+      appLeft.classList.remove("hidden")
+      gsap.to(appLeft, {
+        width: "100%"
+      })
+      gsap.to(appRight, {
+        width: 0
+      })
+    },
+    handleResize() {
+      this.screenWidth = window.innerWidth
+    },
+    // async updateSeen() {
+    //   console.log("?")
+    //   const recCol = doc(db, "Users", this.currentChatUid)
+    //   let userData
+    //   let updatedMessages = []
+    //   const unsub = onSnapshot(doc(db, "Users", this.currentChatUid), async (docSnapshot) => {
+    //     userData = docSnapshot.data();
+    //   })
+    //   userData.messages.forEach((message) => {
+    //     console.log(message)
+    //     message.seen = true
+
+    //     updatedMessages.push(message)
+    //   })
+    //   await updateDoc(recCol, {
+    //     "messages": updatedMessages
+    //   }).then(updatedMessages = []);
+
+    // }
   },
-  // watch: {
-  //   'userData.messages': {
-  //     handler(newValue, oldValue) {
-  //       if (newValue.length > oldValue.length && this.ready && this.userData.messages[this.userData.messages.length - 1].from !== this.currentUserUid && this.notifPermission) {
-  //         Notification.requestPermission().then(perm => {
-  //           if (perm === "granted") {
-  //             const notification = new Notification(`New message from: ${this.userData.messages[this.userData.messages.length - 1].from_name}`, {
-  //               body: this.userData.messages[this.userData.messages.length - 1].text,
-  //               icon: "https://firebasestorage.googleapis.com/v0/b/boolzapp2.appspot.com/o/boolzapp-high-resolution-logo-transparent.png?alt=media&token=7488333e-2d66-481c-a624-baab05f5a861",
-  //               tag: "New Message"
-  //             })
-  //           }
-  //         })
-  //       }
-  //     },
-  //     deep: true
-  //   }
-  // }
+  watch: {
+    // 'userData.messages': {
+    //   handler(newValue, oldValue) {
+    //     if (newValue.length > oldValue.length && this.ready && this.userData.messages[this.userData.messages.length - 1].from !== this.currentUserUid && this.notifPermission) {
+    //       Notification.requestPermission().then(perm => {
+    //         if (perm === "granted") {
+    //           const notification = new Notification(`New message from: ${this.userData.messages[this.userData.messages.length - 1].from_name}`, {
+    //             body: this.userData.messages[this.userData.messages.length - 1].text,
+    //             icon: "https://firebasestorage.googleapis.com/v0/b/boolzapp2.appspot.com/o/boolzapp-high-resolution-logo-transparent.png?alt=media&token=7488333e-2d66-481c-a624-baab05f5a861",
+    //             tag: "New Message"
+    //           })
+    //         }
+    //       })
+    //     }
+    //   },
+    //   deep: true
+    // }
+    // 'userData.messages': {
+    //   handler(newValue, oldValue) {
+    //     if (newValue > oldValue && this.currentChatUid) {
+
+    //       this.updateSeen()
+    //     }
+    //   }
+    // },
+    screenWidth(newWidth) {
+      if (newWidth > 1024) {
+        let appLeft = this.$refs.appLeft
+        let appRight = this.$refs.appRight
+        let leftIcons = this.$refs.leftBar_icons
+        appLeft.style.width = ""
+        appRight.style.width = ""
+        leftIcons.classList.remove("hidden")
+      }
+    }
+  }
 
 }
 
