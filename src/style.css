@@ -63,7 +63,7 @@ button {
 
 .message {
     padding-left: 2%;
-    width: fit-content;
+    width: 40%;
     padding-right: 20%;
     font-size: 18px;
     padding-block: 1%;
@@ -71,7 +71,15 @@ button {
     position: relative;
     margin-top: 10px;
     cursor: pointer;
+    display: flex;
+    line-break: anywhere;
 }
+
+.message.audio-content span {
+    line-break: auto;
+}
+
+
 
 .message .message-time {
     position: absolute;
@@ -236,4 +244,42 @@ input[type=range] {
     100% {
         transform: rotate(360deg);
     }
+}
+
+i:hover {
+    scale: 1.2;
+}
+
+.audioSpeed {
+    background-color: rgba(0, 0, 0, 0.6);
+    clip-path: circle();
+    font-size: 14px;
+    padding: 8px;
+    color: white;
+    opacity: 0;
+    z-index: 10;
+}
+
+.test {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.test img {
+    position: absolute;
+    width: 90%;
+}
+
+.test:hover .audioSpeed {
+    opacity: 1
+}
+
+.last-seen {
+    overflow: hidden;
+    white-space: nowrap;
+    /* Prevent text wrapping */
+    text-overflow: ellipsis;
+    /* Display ellipsis for overflow text */
+    /* Or specify a specific width */
 }

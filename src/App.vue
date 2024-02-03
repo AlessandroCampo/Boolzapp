@@ -33,7 +33,7 @@
     </div>
   </div>
   <div id="app-container" class="w-2/3 h-full flex mx-auto py-12" v-else>
-    <div class="app-container-left w-1/2 flex flex-col relative">
+    <div class="app-container-left w-1/3 flex flex-col relative">
       <div class="a-c-l-topbar h-[70px]  bg-slate-200 flex items-center justify-between gap-5 px-2 py-5 ">
         <div class="flex items-center text-2xl gap-2">
           <img :src="userData.avatarSrc ? userData.avatarSrc : `/assets/empty_avatar.png`" alt=""
@@ -43,6 +43,7 @@
 
         <div class="top-icons flex gap-3 text-2xl  text-gray-400">
           <i class="fas fa-address-book cursor-pointer me-4" @click="openContacts"></i>
+          <i class="fas fa-bell-slash" @click="requestNotifications"></i>
         </div>
       </div>
       <div class="a-c-l-searchbar  bg-white  text-gray-400 px-4 py-1 flex items-center gap-3 border-b-2">
@@ -51,8 +52,8 @@
           v-model="chatFilterString">
       </div>
       <div class="a-c-l-chat-list flex-grow  bg-white scrollable-container">
-        <div class="chat-left flex gap-3 py-2 px-4 border-b-2 items-center cursor-pointer" v-for="(user, index) in users"
-          :key="index"
+        <div class="chat-left flex gap-3 py-2 px-6 border-b-2 items-center cursor-pointer w-full justify-around"
+          v-for="(user, index) in users" :key="index"
           v-show="user.username !== userData.username && userData.activeChats.includes(user.username) && (!chatFilterString || user.username.includes(chatFilterString.toLowerCase()))"
           @click="changeChat(index)">
           <img :src="user.avatarSrc ? user.avatarSrc : `../assets/empty_avatar.png`" alt="" class="avatar">
@@ -62,23 +63,33 @@
             </span>
             <span class="last-seen text-xs text-gray-400"
               v-if="user.messages[0] && user.messages[user.messages.length - 1].type === 'text'">
+              <span v-if="user.messages[user.messages.length - 1].media" class="font-bold text-gray-800"> <i
+                  class="fas fa-image text-xl"></i> </span>
+              <span v-if="user.messages[user.messages.length - 1].from === currentUserUid"
+                class="font-bold text-gray-800"> INVIATO:</span>
               {{
                 user.messages[user.messages.length - 1].text }}
             </span>
 
             <span class="last-seen text-xs text-gray-400"
               v-else-if="user.messages[0] && user.messages[user.messages.length - 1].type === 'audio'">
+              <span v-if="user.messages[user.messages.length - 1].from === currentUserUid"
+                class="font-bold text-gray-800"> INVIATO:
+              </span>
               <i class="fas fa-microphone text-green-700"></i>
               {{
                 formatTime(user.messages[user.messages.length - 1].duration)
               }}
             </span>
 
-          </div>
 
-          <span class="last-seen text-lg text-gray-400" v-if="user.messages[0]">
-            {{ user.messages[user.messages.length - 1].time }}
+          </div>
+          <span class="text-lg text-gray-400 w-fit" v-if="user.messages[0]">
+
+            {{ user.messages[user.messages.length - 1].time.split(" ")[1] }}
           </span>
+
+
 
         </div>
       </div>
@@ -112,7 +123,7 @@
 
         <div class="chat-left flex gap-3 py-2 px-4 border-b-2 overflow-y-scroll scrollable-container items-center"
           v-for="(user, index) in users" :key="index"
-          v-show="user.username !== userData.username && userData.contacts.includes(user.username) && (!contactsFilterString || user.username.includes(contactsFilterString.toLowerCase()))"
+          v-show="userData.contacts.length > 0 && user.username !== userData.username && userData.contacts.includes(user.username) && (!contactsFilterString || user.username.includes(contactsFilterString.toLowerCase()))"
           @click="pushChat(index)">
           <img :src="user.avatarSrc ? user.avatarSrc : `/assets/empty_avatar.png`" alt="" class="avatar">
           <div class="user-info text-2xl flex flex-col w-3/4">
@@ -193,17 +204,25 @@
             </li>
           </ul>
         </div>
-        <div class="message " v-for="(message, index) in userData.messages" :key="index"
-          :class="currentUserUid !== message.to ? 'from-user' : 'from-others'"
+        <div class="message" v-for="(message, index) in  userData.messages " :key="index" :class="{
+          'from-user': currentUserUid !== message.to,
+          'from-others': currentUserUid === message.to,
+          'audio-content': message.type === 'audio'
+        }"
           v-show="(currentUserUid === message.from && currentChatUid === message.to) || (currentUserUid === message.to && currentChatUid === message.from)">
           <span class="message-content" v-if="message.type === 'text'">
             {{ message.text }}
+            <img :src="message.media" alt="" v-if="message.media" class="w-1/2">
           </span>
-          <div class="audio-player" v-else>
+          <div class="audio-player" v-else-if="message.type === 'audio'">
             <audio :src="message.text" controls class="audio-controls hidden" :id="`player${index}`"></audio>
-            <div class="audio-message flex items-center gap-3">
-              <img :src="currentUserUid !== message.to ? users[activeChat].avatarSrc : userData.avatarSrc" alt=""
-                class="avatar">
+            <div class="audio-message flex items-center gap-2 justify-between">
+              <div class="relative test py-2">
+                <img :src="currentUserUid === message.to ? users[activeChat].avatarSrc : userData.avatarSrc" alt=""
+                  class="avatar w-full">
+                <span class="audioSpeed" @click="changeSpeed(index, $event)"> 1.0X</span>
+              </div>
+
               <i class="
                 fas fa-play text-xl cursor-pointer" @click="playAudio(index, $event)"></i>
               <input type="range" name="" :id="`slider${index}`" value=0 :max="message.duration" :ref="`slider${index}`">
@@ -212,17 +231,29 @@
 
           </div>
 
+
           <span class="message-time"> {{ message.time }} </span>
         </div>
 
       </div>
       <div class="a-c-r-bottombar h-[70px]  bg-slate-200 flex items-center justify-around py-5">
-        <i class="fa-regular fa-face-smile text-gray-700 cursor-pointer text-xl" @click="toggleEmojis"></i>
+        <div class="bottom-bar-right-icon-container flex gap-5 h-[70px] items-center py-3">
+          <i class="fa-regular fa-face-smile text-gray-700 cursor-pointer text-xl" @click="toggleEmojis"></i>
+          <div class="h-full flex items-center">
+            <input type="file" ref="sendMediaInput" @change="sendMedia($event)" style="display: none;">
+            <label for="sendMediaInput">
+              <i class="fas fa-image text-gray-700 cursor-pointer text-xl" @click="triggerSendMediaInput"></i>
+            </label>
+          </div>
+          <img :src="currentText.media" alt="" srcset="" class="h-full" ref="mediaPreview">
+        </div>
 
-        <input type="text" placeholder="Scrivi un messaggio...." class="w-3/5 px-2 py-1 h-[60px] text-xl"
-          v-model="currentText.text" @keyup.enter="sendMessage">
+
+        <input type=" text" placeholder="Scrivi un messaggio...." class="w-3/5 px-2 py-1 h-[50px] text-xl"
+          v-model="currentText.text" @keyup.enter="sendMessage" ref="textBar" @input="isWriting">
+        <span v-show="is_recording" class="text-xl max-w-fit"> {{ formatTime(podcastDuration) }} </span>
         <i class="fa-solid fa-microphone  text-gray-700 cursor-pointer text-xl" @click="toggleMic"
-          v-if="!currentText.text"></i>
+          v-if="!currentText.text && !this.currentText.media"></i>
         <i class="fas fa-paper-plane text-gray-700 cursor-pointer text-xl" @click="sendMessage" v-else></i>
       </div>
     </div>
@@ -240,7 +271,7 @@
 import { onSnapshot, collection, doc, deleteDoc, setDoc, addDoc, orderBy, query, getDoc } from "firebase/firestore";
 import { updateDoc, arrayUnion, arrayRemove, serverTimestamp } from "firebase/firestore";
 import { db, storage } from "./firebase"
-import { onUnmounted } from "vue"
+import { onUnmounted, toHandlers } from "vue"
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
@@ -281,12 +312,24 @@ export default {
       recorder: null,
       podcastDuration: 0,
       podcastInterval: null,
+      notifPermission: false,
+      ready: false,
       chuncks: [],
       collection: userCollection,
       currentUser: null,
       currentUserUid: null,
       currentChatUid: null,
-      userData: {},
+      userData: {
+        messages: [],
+        activeChats: ["Paperino"],
+        contacts: ["Paperino"],
+        status: "X",
+        email: "x.com",
+        avatarSrc: "ciao.png",
+        mood: "depressed"
+
+
+      },
       activeChat: null,
       currentChats: [],
       userChatHistory: null,
@@ -297,27 +340,32 @@ export default {
       contactsFilterString: "",
       currentText: {
         text: "",
-        status: ""
+        status: "",
+        media: ""
       },
       emojis: []
     }
   }
-  , mounted() {
+  , async mounted() {
+
     this.setupAudio()
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         // User is signed in
-        this.logged = true
-        this.loading = false
         this.currentUser = user;
         this.currentUserUid = user.uid
-        this.fetchUserData(user.uid);
+        await this.fetchUserData(user.uid);
+        this.uid = user.uid
+        this.loading = false
+        this.logged = true
+
 
       } else {
         // User is signed out
+        this.logged = false
         this.currentUser = null;
         this.userData = null;
-        this.logged = false
+        this.loading = false
       }
 
     });
@@ -326,12 +374,14 @@ export default {
 
   },
   created() {
-
+    this.isWriting()
+    this.retrieveData()
     fetch('https://emoji-api.com/emojis?access_key=be75f8e104ed4ec4c32d07788050d5a7c5306cbc')
       .then(res => res.json())
       .then(data => {
         this.emojis.push(...data);
       })
+
   },
   methods: {
     async onChangeFileUpload(event) {
@@ -358,7 +408,7 @@ export default {
 
         await setDoc(doc(db, "Users", user.uid), {
           username: this.user.username,
-          avatarSrc: this.user.avatarSrc,
+          avatarSrc: this.user.avatarSrc ? this.user.avatarSrc : "https://firebasestorage.googleapis.com/v0/b/boolzapp2.appspot.com/o/empty_avatar.png?alt=media&token=b5a843bc-29c0-4b91-ada1-d4a34d844fdc",
           password: this.user.password,
           email: this.user.email,
           messages: [],
@@ -518,6 +568,7 @@ export default {
         }
       })
       for (const user of this.users) {
+        console.log(user.username)
         if (this.addUserString.toLowerCase() === user.username.toLowerCase()) {
           await updateDoc(userCol, {
             "contacts": arrayUnion(
@@ -551,7 +602,7 @@ export default {
       })
     },
     async sendMessage() {
-
+      if (!this.currentText.text && !this.currentText.media) return
       if (!this.currentChatUid) {
         this.currentChatUid = this.users[this.activeChat].id
       }
@@ -564,16 +615,23 @@ export default {
           time: timeStamp,
           text: this.currentText.text,
           to: this.currentChatUid,
-          from: this.currentUserUid
+          from: this.currentUserUid,
+          from_name: this.userData.username,
+          media: this.currentText.media
         }),
       })
+      await updateDoc(userCol, {
+        "status": `Ultima attività: ${this.getCurrentDateTimeString()}`
+      });
       await updateDoc(recipientCol, {
         "messages": arrayUnion({
           type: "text",
           time: timeStamp,
           text: this.currentText.text,
           to: this.currentChatUid,
-          from: this.currentUserUid
+          from: this.currentUserUid,
+          from_name: this.userData.username,
+          media: this.currentText.media
         }),
       })
       await updateDoc(recipientCol, {
@@ -582,6 +640,7 @@ export default {
         ),
       })
       this.currentText.text = '';
+      this.currentText.media = '';
     }
     ,
     retrieveData() {
@@ -617,6 +676,7 @@ export default {
             // Remove the user from the array if it's deleted
             this.users = this.users.filter(user => user.id !== change.doc.id);
           }
+
         });
       });
     }
@@ -634,8 +694,10 @@ export default {
           console.log("No such document!");
         }
       } catch (error) {
+        this.logged = false
         console.error("Error fetching user data:", error);
       }
+
     },
     setupAudio() {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -647,7 +709,8 @@ export default {
     setupStream(stream) {
 
       this.recorder = new MediaRecorder(stream)
-      this.recorder.ondataavailable = e => {
+      this.recorder.ondataavailable = async e => {
+        const userCol = doc(db, "Users", this.currentUserUid);
         this.chuncks.push(e.data)
 
       }
@@ -697,14 +760,17 @@ export default {
             ),
           })
         })
+        await updateDoc(userCol, {
+          "status": `Ultima attività: ${this.getCurrentDateTimeString()}`
+        })
 
 
       }
 
       this.can_record = true
     },
-    toggleMic(e) {
-
+    async toggleMic(e) {
+      const userCol = doc(db, "Users", this.currentUserUid);
       if (!this.can_record) return
       this.is_recording = !this.is_recording
       if (this.is_recording) {
@@ -712,6 +778,9 @@ export default {
         this.podcastInterval = setInterval(() => { this.podcastDuration++ }, 1000)
         e.target.classList.remove("text-gray-700")
         e.target.classList.add("text-red-700")
+        await updateDoc(userCol, {
+          "status": `Sta registrando...`
+        });
       } else {
         this.recorder.stop()
 
@@ -787,8 +856,86 @@ export default {
     async confirmExit() {
 
       return "You have attempted to leave this page. Are you sure?";
+    },
+
+    async isWriting() {
+      console.log("is writing")
+      const userCol = doc(db, "Users", this.currentUserUid);
+      if (this.currentText.text) {
+        await updateDoc(userCol, {
+          "status": "Sta scrivendo..."
+        });
+      }
+
+    },
+
+    changeSpeed(index, event) {
+      const audioElement = document.querySelector(`#player${index}`);
+      const sliderElement = document.querySelector(`#slider${index}`);
+      if (audioElement.playbackRate === 1) {
+        audioElement.playbackRate = 1.5
+        event.target.textContent = "1.5X"
+      } else if (audioElement.playbackRate === 1.5) {
+        audioElement.playbackRate = 2
+        event.target.textContent = "2.0X"
+      } else if (audioElement.playbackRate === 2) {
+        audioElement.playbackRate = 1
+        event.target.textContent = "1.0X"
+      }
+
+
+    },
+    requestNotifications(event) {
+      Notification.requestPermission().then(perm => {
+        if (perm === "denied") {
+          event.target.classList.remove("fa-bell")
+          event.target.classList.add("fa-bell-slash")
+        } else if (perm === "granted") {
+          if (event.target.classList.contains("fa-bell")) {
+            event.target.classList.remove("fa-bell")
+            event.target.classList.add("fa-bell-slash")
+            this.notifPermission = false
+          } else {
+            event.target.classList.add("fa-bell")
+            event.target.classList.remove("fa-bell-slash")
+            this.notifPermission = true
+          }
+        }
+      })
+    },
+    triggerSendMediaInput() {
+      console.log("clicked")
+      this.$refs.sendMediaInput.click();
+    },
+    sendMedia(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = async () => {
+        this.$refs.mediaPreview.src = reader.result;
+        this.$refs.mediaPreview.classList.remove("hidden")
+        this.currentText.media = reader.result
+      }
+      reader.readAsDataURL(file);
     }
-  }
+  },
+  // watch: {
+  //   'userData.messages': {
+  //     handler(newValue, oldValue) {
+  //       if (newValue.length > oldValue.length && this.ready && this.userData.messages[this.userData.messages.length - 1].from !== this.currentUserUid && this.notifPermission) {
+  //         Notification.requestPermission().then(perm => {
+  //           if (perm === "granted") {
+  //             const notification = new Notification(`New message from: ${this.userData.messages[this.userData.messages.length - 1].from_name}`, {
+  //               body: this.userData.messages[this.userData.messages.length - 1].text,
+  //               icon: "https://firebasestorage.googleapis.com/v0/b/boolzapp2.appspot.com/o/boolzapp-high-resolution-logo-transparent.png?alt=media&token=7488333e-2d66-481c-a624-baab05f5a861",
+  //               tag: "New Message"
+  //             })
+  //           }
+  //         })
+  //       }
+  //     },
+  //     deep: true
+  //   }
+  // }
 
 }
 
