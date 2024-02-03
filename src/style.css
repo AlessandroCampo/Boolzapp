@@ -4,6 +4,22 @@
 
 body {
     margin: 0px;
+    width: 100vw;
+    min-height: 100vh;
+    /* fall-back */
+    min-height: -moz-available;
+    min-height: -webkit-fill-available;
+    min-height: fill-available;
+}
+
+#app {
+    width: 100vw;
+    height: 100vh;
+    min-height: 100vh;
+    /* fall-back */
+    min-height: -moz-available;
+    min-height: -webkit-fill-available;
+    min-height: fill-available;
 }
 
 .login-page {
@@ -194,6 +210,7 @@ label figure {
     border: 2px solid black;
     bottom: 1%;
     left: 5%;
+    z-index: 134;
 }
 
 .notVisible {
