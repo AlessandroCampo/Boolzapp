@@ -5,21 +5,18 @@
 body {
     margin: 0px;
     width: 100vw;
+    min-height: 100vh;
     min-height: 100dvh;
     /* fall-back */
-    min-height: -moz-available;
-    min-height: -webkit-fill-available;
-    min-height: fill-available;
 }
 
 #app {
     width: 100vw;
-    height: 100vh;
+    min-height: 100vh;
     min-height: 100dvh;
+
     /* fall-back */
-    min-height: -moz-available;
-    min-height: -webkit-fill-available;
-    min-height: fill-available;
+
 }
 
 .a-c-r-message-box {
@@ -81,6 +78,7 @@ button {
     height: 3.2vw;
     clip-path: circle();
     min-height: 45px;
+    aspect-ratio: 1;
 }
 
 .message {
@@ -207,14 +205,14 @@ label figure {
 
 
 #emoji-container {
-    position: absolute;
+    position: fixed;
     width: 150px;
     height: 270px;
     background-color: white;
     overflow-y: scroll;
     border: 2px solid black;
-    bottom: 1%;
-    left: 5%;
+    bottom: 13%;
+    left: 38%;
     z-index: 134;
 }
 
@@ -305,4 +303,15 @@ i:hover {
 
 .message img {
     min-width: 70px;
+}
+
+@media screen and (max-width: 1024px) {
+    #emoji-container {
+        position: fixed;
+        width: 130px;
+        height: 220px;
+        bottom: 10%;
+        left: 4%;
+        z-index: 134;
+    }
 }
