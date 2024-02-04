@@ -32,7 +32,7 @@
       </form>
     </div>
   </div>
-  <div id="app-container" class="lg:w-3/4 lg:h-full flex mx-auto lg:py-12 h-screen w-screen" v-else>
+  <div id="app-container" class="lg:w-3/4 lg:h-full flex mx-auto lg:py-12 h-full w-full" v-else>
     <div class="app-container-left lg:w-1/3 lg:flex flex-col relative flex w-full" ref="appLeft">
       <div class="a-c-l-topbar h-[70px]  bg-slate-200 flex items-center justify-between gap-5 px-2 py-5 w-full ">
         <div class="flex items-center text-2xl gap-2 border-2 w-fit">
@@ -625,6 +625,18 @@ export default {
       this.currentChatUid = this.users[this.activeChat].id
 
       this.currentChats.push(this.users[index].username)
+      let appLeft = this.$refs.appLeft
+      let appRight = this.$refs.appRight
+      let icons = this.$refs.leftBar_icons
+      icons.classList.add("hidden")
+      if (this.screenWidth <= 1024) {
+        gsap.to(appLeft, {
+          width: 0
+        })
+        gsap.to(appRight, {
+          width: "100%"
+        })
+      }
       await updateDoc(userCol, {
         "activeChats": arrayUnion(
           this.users[index].username
