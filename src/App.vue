@@ -55,9 +55,14 @@
       </div>
       <div class="a-c-l-chat-list flex-grow  bg-white scrollable-container">
         <div class="chat-left flex gap-3 py-2 px-6 border-b-2 items-center cursor-pointer w-full justify-around"
-          v-for="(user, index) in users" :key="index"
-          v-show="user.username !== userData.username && userData.activeChats.includes(user.username) && (!chatFilterString || user.username.includes(chatFilterString.toLowerCase()))"
-          @click="changeChat(index)">
+          v-for="(user, index) in users" :key="index" v-show="user.username !== userData.username &&
+            userData.activeChats.includes(user.username) &&
+            (
+              !chatFilterString ||
+              user.username.toLowerCase().includes(chatFilterString.toLowerCase()) ||
+              user.username.toLowerCase().startsWith(chatFilterString.toLowerCase())
+            )
+            " @click="changeChat(index)">
           <div class="w-1/5">
             <img :src="user.avatarSrc ? user.avatarSrc : `../assets/empty_avatar.png`" alt="" class="avatar">
           </div>
@@ -149,9 +154,14 @@
         </div>
 
         <div class="chat-left flex gap-3 py-2 px-4 border-b-2 overflow-y-scroll scrollable-container items-center"
-          v-for="(user, index) in users" :key="index"
-          v-show="userData.contacts.length > 0 && user.username !== userData.username && userData.contacts.includes(user.username) && (!contactsFilterString || user.username.includes(contactsFilterString.toLowerCase()))"
-          @click="pushChat(index)">
+          v-for="(user, index) in users" :key="index" v-show="userData.contacts.length > 0 &&
+            user.username !== userData.username &&
+            userData.contacts.includes(user.username) &&
+            (
+              !contactsFilterString ||
+              user.username.toLowerCase().startsWith(contactsFilterString.toLowerCase())
+            )
+            " @click="pushChat(index)">
           <img :src="user.avatarSrc ? user.avatarSrc : `/assets/empty_avatar.png`" alt="" class="avatar">
           <div class="user-info text-2xl flex flex-col w-3/4">
             <span class="user-name text-gray-950">
@@ -181,8 +191,10 @@
             v-model="contactsFilterString">
         </div>
         <div class="chat-left flex gap-3 py-2 px-4 border-b-2 overflow-y-scroll scrollable-container items-center"
-          v-for="(user, index) in users" :key="index"
-          v-show="userData.contacts.length > 0 && activeChat && users[activeChat].partecipants !== undefined && !users[activeChat].partecipants.includes(user.username) && user.username !== userData.username && userData.contacts.includes(user.username) && (!contactsFilterString || user.username.includes(contactsFilterString.toLowerCase()))">
+          v-for="(user, index) in users" :key="index" v-show="userData.contacts.length > 0 && activeChat && users[activeChat].partecipants !== undefined && !users[activeChat].partecipants.includes(user.username) && user.username !== userData.username && userData.contacts.includes(user.username) && (
+            !contactsFilterString ||
+            user.username.toLowerCase().startsWith(contactsFilterString.toLowerCase())
+          )">
           <img :src="user.avatarSrc ? user.avatarSrc : `/assets/empty_avatar.png`" alt="" class="avatar">
           <div class="user-info text-2xl flex flex-col w-3/4">
             <span class="user-name text-gray-950">
