@@ -25,7 +25,11 @@ body {
 .a-c-r-message-box {
     background-image: url("../public/assets/mine.jpg");
     background-size: contain;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
 }
+
+
 
 .login-page {
     overflow: hidden;
@@ -97,6 +101,12 @@ button {
     line-break: loose;
 }
 
+.message-content {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    width: 100%;
+}
+
 .message.audio-content span {
     line-break: auto;
 }
@@ -121,8 +131,9 @@ button {
 
 
 .from-user {
-    background-color: greenyellow;
+    background-color: #3CA876;
     margin-left: auto;
+    color: white;
 
 }
 
@@ -308,6 +319,10 @@ i:hover {
     min-width: 70px;
 }
 
+div img.groupmsgimg {
+    min-width: 40px !important
+}
+
 @media screen and (max-width: 1024px) {
     #emoji-container {
         position: fixed;
@@ -329,5 +344,17 @@ i:hover {
 
         /* fall-back */
 
+    }
+
+
+}
+
+@media screen and (max-width: 768px) {
+    #app {
+        height: calc(100vh - 50px);
+    }
+
+    body {
+        height: calc(100vh - 50px);
     }
 }

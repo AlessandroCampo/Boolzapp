@@ -34,15 +34,16 @@
   </div>
   <div id="app-container" class="lg:w-3/4 lg:h-full flex mx-auto lg:py-12 h-full w-full" v-else>
     <div class="app-container-left lg:w-1/3 lg:flex flex-col relative flex w-full" ref="appLeft">
-      <div class="a-c-l-topbar h-[70px]  bg-slate-200 flex items-center justify-between gap-5 px-2 py-5 w-full ">
-        <div class="flex items-center text-2xl gap-2 border-2 w-fit">
+      <div class="a-c-l-topbar h-[70px]  bg-[#55e188] flex items-center justify-between gap-5 px-2 py-5 w-full ">
+        <div class="flex items-center text-2xl gap-2  w-1/3 lg:w-fit">
           <img :src="userData.avatarSrc ? userData.avatarSrc : `/assets/empty_avatar.png`" alt=""
             class="avatar cursor-pointer" @click="openProfile">
-          <span class="active-name text-base lg:text-lg xl:text-xl " v-if="userData.username"> {{ userData.username }}
+          <span class="active-name text-base lg:text-lg xl:text-xl w-1/2" v-if="userData.username"> {{ userData.username
+          }}
           </span>
         </div>
 
-        <div class="top-icons flex gap-1 lg:gap-3 text-xl  text-gray-400 border-2" ref="leftBar_icons">
+        <div class="top-icons flex gap-1 lg:gap-3 text-xl text-gray-800 " ref="leftBar_icons">
           <i class="fas fa-address-book cursor-pointer me-4" @click="openContacts"></i>
           <i class="fas fa-bell-slash" @click="requestNotifications"></i>
         </div>
@@ -57,24 +58,28 @@
           v-for="(user, index) in users" :key="index"
           v-show="user.username !== userData.username && userData.activeChats.includes(user.username) && (!chatFilterString || user.username.includes(chatFilterString.toLowerCase()))"
           @click="changeChat(index)">
-          <img :src="user.avatarSrc ? user.avatarSrc : `../assets/empty_avatar.png`" alt="" class="avatar">
-          <div class="user-info text-base lg:text-lg xl:text-xl flex flex-col w-3/4">
+          <div class="w-1/5">
+            <img :src="user.avatarSrc ? user.avatarSrc : `../assets/empty_avatar.png`" alt="" class="avatar">
+          </div>
+
+          <div class="user-info text-base lg:text-lg xl:text-xl flex flex-col w-3/5 text-ellipsis overflow-hidden">
             <span class="user-name text-gray-950">
-              {{ user.username }}
+              {{ user.type === "group" ? user.groupName : user.username }}
             </span>
             <span class="last-seen text-xs text-gray-400 flex items-center gap-2"
-              v-if="user.messages[0] && user.messages[user.messages.length - 1].type === 'text'">
+              v-if="user.messages[0] && user.messages[user.messages.length - 1].type === 'text' && (user.messages[user.messages.length - 1].to === currentUserUid || user.messages[user.messages.length - 1].from === currentUserUid)">
               <span v-if="user.messages[user.messages.length - 1].from === currentUserUid"
                 class="font-bold text-gray-800"> INVIATO:</span>
-              <span v-if="user.messages[user.messages.length - 1].media" class="font-bold text-gray-800"> <i
-                  class="fas fa-image text-xl"></i> </span>
+              <span
+                v-if="user.messages[user.messages.length - 1].media && user.messages[user.messages.length - 1].to === currentUserUid"
+                class="font-bold text-gray-800"> <i class="fas fa-image text-xl"></i> </span>
 
               {{
                 user.messages[user.messages.length - 1].text }}
             </span>
 
             <span class="last-seen text-xs text-gray-400"
-              v-else-if="user.messages[0] && user.messages[user.messages.length - 1].type === 'audio'">
+              v-else-if="user.messages[0] && user.messages[user.messages.length - 1].type === 'audio' && (user.messages[user.messages.length - 1].to === currentUserUid || user.messages[user.messages.length - 1].from === currentUserUid)">
               <span v-if="user.messages[user.messages.length - 1].from === currentUserUid"
                 class="font-bold text-gray-800"> INVIATO:
               </span>
@@ -86,10 +91,12 @@
 
 
           </div>
-          <span class="text-sm lg:text-lg xl:text-xl text-gray-400 w-fit" v-if="user.messages[0]">
+          <span class="text-sm lg:text-lg xl:text-xl text-gray-400 w-1/5 flex justify-center"
+            v-if="user.messages[0] && (user.messages[user.messages.length - 1].to === currentUserUid || user.messages[user.messages.length - 1].from === currentUserUid)">
 
             {{ user.messages[user.messages.length - 1].time.split(" ")[1] }}
           </span>
+          <span v-else class="w-1/5"></span>
 
 
 
@@ -108,7 +115,7 @@
         </div>
         <div class="chat-left flex gap-3 py-2 px-4 border-b-2 items-center opacity-0" ref="addUserContainer">
           <img src="../public/assets/add-user.png" alt="" class="avatar cursor-pointer" @click="addUser">
-          <div class="user-info text-xs flex flex-col w-3/4">
+          <div class="text-xs flex flex-col w-3/4">
             <span class="user-name text-gray-950 text-xl overflow-hidden break-keep whitespace-nowrap">
               Aggiungi nuovo utente
             </span>
@@ -118,6 +125,24 @@
             </div>
 
           </div>
+
+          <!-- <span class="last-message-time  text-gray-400 text-[8px]">
+            12:00
+          </span> -->
+        </div>
+        <div class="chat-left flex gap-3 py-2 px-4 border-b-2 items-center" ref="createGroupContainer">
+          <img src="../public/assets/groupchat.png" alt="" class="avatar cursor-pointer">
+          <div class="text-xs flex flex-col w-3/4">
+            <span class="user-name text-gray-950 text-xl overflow-hidden break-keep whitespace-nowrap">
+              Crea nuovo gruppo
+            </span>
+            <div>
+              <input type="text" class="border-2 text-xl w-1/2" v-model="createGroupString">
+              <i class="fa-solid fa-circle-plus ms-3 text-2xl cursor-pointer w-1/5" @click="createGroup"></i>
+            </div>
+
+          </div>
+
           <!-- <span class="last-message-time  text-gray-400 text-[8px]">
             12:00
           </span> -->
@@ -142,6 +167,40 @@
         </div>
 
       </div>
+      <div class="off-canvas addToGroup w-full border-2">
+        <div class="off-canvas-top-bar  h-[70px] bg-[#55e188] flex items-center gap-3 justify-between">
+          <i class="fas fa-arrow-left ms-4 cursor-pointer text-xl" @click="closeGroupAdd"></i>
+          <h2 class="text-xl w-2/3 overflow-hidden break-keep whitespace-nowrap" ref="groupAddTitle">
+            Aggiungi contatti al gruppo
+          </h2>
+          <i class="fa-solid fa-circle-plus lg:text-2xl text-xl me-4 cursor-pointer" @click="addToGroup"></i>
+        </div>
+        <div class="a-c-l-searchbar  bg-white  text-gray-400 px-4 py-1 text-xs flex items-center gap-3 border-b-2">
+          <i class="fa-solid fa-magnifying-glass mt-[2px]"></i>
+          <input type="text" name="" id="" placeholder="Cerca tra i contatti..." class="w-full px-2 py-1 text-xl"
+            v-model="contactsFilterString">
+        </div>
+        <div class="chat-left flex gap-3 py-2 px-4 border-b-2 overflow-y-scroll scrollable-container items-center"
+          v-for="(user, index) in users" :key="index"
+          v-show="userData.contacts.length > 0 && activeChat && users[activeChat].partecipants !== undefined && !users[activeChat].partecipants.includes(user.username) && user.username !== userData.username && userData.contacts.includes(user.username) && (!contactsFilterString || user.username.includes(contactsFilterString.toLowerCase()))">
+          <img :src="user.avatarSrc ? user.avatarSrc : `/assets/empty_avatar.png`" alt="" class="avatar">
+          <div class="user-info text-2xl flex flex-col w-3/4">
+            <span class="user-name text-gray-950">
+              {{ user.username }}
+            </span>
+            <span class="last-seen text-sm text-gray-400">
+              {{ user.mood }}
+            </span>
+
+          </div>
+          <input type="checkbox" class="scale-150" @change="addToGroupArray(index, $event)">
+          <!-- <span class="last-message-time  text-gray-400 text-[8px]">
+            12:00
+          </span> -->
+        </div>
+
+      </div>
+
       <div class="off-canvas profile">
         <div class="off-canvas-top-bar  h-[70px] bg-[#55e188] flex items-center gap-3">
           <i class="fas fa-arrow-left ms-4 cursor-pointer text-2xl" @click="closeProfile"></i>
@@ -175,18 +234,29 @@
       </div>
     </div>
     <div class="app-container-right lg:w-2/3 w-full  flex flex-col" v-if="activeChat !== null" ref="appRight">
-      <div class="a-c-r-topbar h-[70px]  bg-slate-200 flex items-center gap-5 px-2 py-5 border-l-2 border-l-gray-400">
+      <div class="a-c-r-topbar h-[70px] bg-[#55e188] flex items-center gap-5 px-2 py-5 border-l-2 border-l-gray-400">
         <img :src="users[activeChat].avatarSrc" alt="" class="avatar">
         <div class="user-info text-xs flex flex-col w-3/4">
-          <span class="user-name text-gray-950 lg:text-2xl text-lg">
-            {{ users[activeChat].username }}
+          <span class="user-name text-gray-950 lg:text-2xl text-lg font-bold">
+            {{ users[activeChat].type === "group" ? users[activeChat].groupName : users[activeChat].username }}
           </span>
           <span class="user-name text-gray-600 lg:text-lg text-regular">
             {{ users[activeChat].status }}
           </span>
+          <span v-if="users[activeChat].type === 'group'">
+            <span v-for="(partecipant, index) in users[activeChat].partecipants" :key="index">
+              {{ index > 0 ? ", " : "" }}
+              {{ partecipant }}
+            </span>
+          </span>
           <!-- <span class="last-seen text-[8px] text-gray-400">
             Ultimo accesso 20 minuti fa
           </span> -->
+        </div>
+        <div class="groupIcons text-xl lg:text-2xl flex items-center gap-4 cursor-pointer"
+          v-if="users[activeChat].type === 'group'">
+          <i class="fa-solid fa-right-from-bracket" @click="leaveGroup"></i>
+          <i class="fa-solid fa-user-plus " @click="openGroupAdd"></i>
         </div>
         <i class="fas fa-arrow-left lg:hidden me-3 text-xl" @click="openChats"></i>
       </div>
@@ -199,20 +269,65 @@
               v-model="emojiSearchString">
           </div>
           <ul id="emoji-list">
-            <li class="cursor-pointer" v-for="(emoji) in  emojis " :key="emoji.slug"
+            <li class="cursor-pointer" v-for="(    emoji    ) in      emojis     " :key="emoji.slug"
               v-show="!emojiSearchString || emoji.slug.toLowerCase().includes(emojiSearchString.toLowerCase())"
               @click="addEmoji(emoji.character)">
               {{ emoji.character }}
             </li>
           </ul>
         </div>
-        <div class="message w-2/3 xl:w-2/5 lg:w-1/2" v-for="(message, index) in  userData.messages " :key="index" :class="{
-          'from-user': currentUserUid !== message.to,
-          'from-others': currentUserUid === message.to,
-          'audio-content': message.type === 'audio'
-        }"
-          v-show="(currentUserUid === message.from && currentChatUid === message.to) || (currentUserUid === message.to && currentChatUid === message.from)">
+        <div class="message w-2/3 xl:w-2/5 lg:w-1/2" v-for="(    message, index    ) in      userData.messages     "
+          :key="index" :class="{
+            'from-user': currentUserUid !== message.to,
+            'from-others': currentUserUid === message.to,
+            'audio-content': message.type === 'audio'
+          }
+            "
+          v-show="(currentUserUid === message.from && currentChatUid === message.to && users[activeChat].type !== 'group') || (currentUserUid === message.to && currentChatUid === message.from && users[activeChat].type !== 'group')">
           <span class="message-content" v-if="message.type === 'text'">
+            {{ message.text }}
+            <img :src="message.media" alt="" v-if="message.media" class="w-1/2">
+          </span>
+          <div class="audio-player w-full" v-else-if="message.type === 'audio'">
+            <audio :src="message.text" controls class="audio-controls hidden" :id="`player${index}`"></audio>
+            <div class="audio-message flex items-center gap-3 lg:gap-6 justify-between">
+              <div class="relative test py-2">
+                <img :src="currentUserUid === message.to ? users[activeChat].avatarSrc : userData.avatarSrc" alt=""
+                  class="avatar w-full">
+                <span class="audioSpeed" @click="changeSpeed(index, $event)"> 1.0X</span>
+              </div>
+              <div class="flex items-center gap-1 justify-between">
+                <i class="
+                fas fa-play text-xl cursor-pointer" @click="playAudio(index, $event)"></i>
+                <input type="range" name="" :id="`slider${index}`" value=0 :max="message.duration" :ref="`slider${index}`"
+                  class="w-[80px]">
+              </div>
+
+              <span class="text-sm xl:text-xl w-1/4">{{ formatTime(message.duration) }}</span>
+            </div>
+
+          </div>
+
+          <div class="message-time lg:text-xs text-xs flex items-center gap-2">
+            <span class=""> {{ message.time.split(" ")[1] }} </span>
+            <i class="fas fa-check-double" :class="message.seen ? 'text-blue-600' : 'text-gray-400'"
+              v-show="message.from === currentUserUid"></i>
+          </div>
+
+        </div>
+        <div class="message w-2/3 xl:w-2/5 lg:w-1/2" v-for="(    message, index    ) in      users[activeChat].messages"
+          :key="index" :class="{
+            'from-user': currentUserUid == message.from,
+            'from-others': currentUserUid !== message.from,
+            'audio-content': message.type === 'audio'
+          }
+            " v-show="(users[activeChat].type === 'group')">
+          <span class="message-content" v-if="message.type === 'text'">
+            <div class="font-bold flex items-center gap-3 mb-3" v-if="message.from !== currentUserUid">
+              <img :src="message.from_avatarSrc" alt="" class="w-[10px] groupmsgimg">
+              {{ message.from_name }}
+
+            </div>
             {{ message.text }}
             <img :src="message.media" alt="" v-if="message.media" class="w-1/2">
           </span>
@@ -245,13 +360,13 @@
         </div>
 
       </div>
-      <div class="a-c-r-bottombar h-[70px]  bg-slate-200 flex items-center justify-around py-5 px-3">
+      <div class="a-c-r-bottombar h-[70px]  bg-[#55e188] flex items-center justify-around py-5 px-3">
         <div class="bottom-bar-left-icon-container flex gap-5 h-[70px] items-center py-3 w-1/5  justify-center">
-          <i class="fa-regular fa-face-smile text-gray-700 cursor-pointer text-xl" @click="toggleEmojis"></i>
+          <i class="fa-regular fa-face-smile text-gray-900 cursor-pointer text-xl" @click="toggleEmojis"></i>
           <div class="h-full flex items-center">
             <input type="file" ref="sendMediaInput" @change="sendMedia($event)" style="display: none;">
             <label for="sendMediaInput">
-              <i class="fas fa-image text-gray-700 cursor-pointer text-xl" @click="triggerSendMediaInput"></i>
+              <i class="fas fa-image text-gray-900 cursor-pointer text-xl" @click="triggerSendMediaInput"></i>
             </label>
           </div>
           <img :src="currentText.media" alt="" srcset="" class="h-full" ref="mediaPreview">
@@ -262,9 +377,9 @@
           v-model="currentText.text" @keyup.enter="sendMessage" ref="textBar" @input="isWriting">
         <div class="bottom-bar-right w-1/5 flex items-center justify-center gap-2">
           <span v-show="is_recording" class="text-xl max-w-fit"> {{ formatTime(podcastDuration) }} </span>
-          <i class="fa-solid fa-microphone  text-gray-700 cursor-pointer text-xl" @click="toggleMic"
+          <i class="fa-solid fa-microphone  text-gray-900 cursor-pointer text-xl" @click="toggleMic"
             v-if="!currentText.text && !this.currentText.media"></i>
-          <i class="fas fa-paper-plane text-gray-700 cursor-pointer text-xl" @click="sendMessage" v-else></i>
+          <i class="fas fa-paper-plane text-gray-900 cursor-pointer text-xl" @click="sendMessage" v-else></i>
         </div>
 
       </div>
@@ -341,7 +456,9 @@ export default {
         status: "X",
         email: "x.com",
         avatarSrc: "ciao.png",
-        mood: "depressed"
+        mood: "depressed",
+        groups: ["Paperino"],
+        type: "user"
 
 
       },
@@ -353,12 +470,15 @@ export default {
       emojiSearchString: "",
       chatFilterString: "",
       contactsFilterString: "",
+      createGroupString: "",
       currentText: {
         text: "",
         status: "",
         media: ""
       },
-      emojis: []
+      emojis: [],
+      groupAddArray: [],
+      groupAddArrayID: []
     }
   }
   , async mounted() {
@@ -385,6 +505,7 @@ export default {
       }
 
     });
+
   },
   created() {
     window.addEventListener("resize", this.handleResize)
@@ -395,6 +516,7 @@ export default {
       .then(data => {
         this.emojis.push(...data);
       })
+
 
   },
   beforeUnmount() {
@@ -419,6 +541,14 @@ export default {
     },
 
     async signUp() {
+      this.users.forEach((utente) => {
+        if (utente.type !== "group" && this.user.username === utente.username) {
+          window.alert("Your username is not available. Please choose another one")
+          return
+        }
+      })
+
+
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, this.user.email, this.user.password);
         const user = userCredential.user;
@@ -433,7 +563,9 @@ export default {
           activeChats: [],
           mood: "Hey there, I'm using Boolzap!",
           uid: user.uid,
-          status: "Offline"
+          status: "Offline",
+          type: "user",
+          groups: []
         });
 
         console.log("User successfully signed up!");
@@ -549,6 +681,37 @@ export default {
         }
       })
     },
+    openGroupAdd() {
+      let offc = document.querySelector(".off-canvas.addToGroup")
+      let appLeft = this.$refs.appLeft
+      let appRight = this.$refs.appRight
+      offc.style.display = "block"
+      appLeft.classList.remove("hidden")
+      gsap.to(offc, {
+        width: "100%",
+        duration: 0.5
+      })
+      if (this.screenWidth <= 1024) {
+        gsap.to(appRight, {
+          width: 0
+        })
+        gsap.to(appLeft, {
+          width: "100%"
+        })
+
+      }
+    },
+    closeGroupAdd() {
+      let offc = document.querySelector(".off-canvas.addToGroup")
+      offc.style.display = "block"
+      gsap.to(offc, {
+        width: "0%",
+        duration: 0.5,
+        onComplete() {
+          offc.style.display = "none"
+        }
+      })
+    },
     toggleEmojis() {
       let emojiMenu = document.getElementById("emoji-container")
 
@@ -612,9 +775,11 @@ export default {
         gsap.to(appRight, {
           width: "100%"
         })
+        setTimeout(() => { icons.classList.add("hidden") }, 150)
+        setTimeout(() => { appLeft.classList.add("hidden") }, 400)
+
       }
-      setTimeout(() => { icons.classList.add("hidden") }, 150)
-      setTimeout(() => { appLeft.classList.add("hidden") }, 400)
+
       this.activeChat = index
       this.currentChatUid = this.users[this.activeChat].id
 
@@ -628,8 +793,8 @@ export default {
       let appLeft = this.$refs.appLeft
       let appRight = this.$refs.appRight
       let icons = this.$refs.leftBar_icons
-      icons.classList.add("hidden")
       if (this.screenWidth <= 1024) {
+        icons.classList.add("hidden")
         gsap.to(appLeft, {
           width: 0
         })
@@ -660,6 +825,7 @@ export default {
           to: this.currentChatUid,
           from: this.currentUserUid,
           from_name: this.userData.username,
+          from_avatarSrc: this.userData.avatarSrc,
           media: this.currentText.media,
           seen: false
         }),
@@ -675,6 +841,7 @@ export default {
           to: this.currentChatUid,
           from: this.currentUserUid,
           from_name: this.userData.username,
+          from_avatarSrc: this.userData.avatarSrc,
           media: this.currentText.media,
           seen: false
         }),
@@ -990,6 +1157,101 @@ export default {
     handleResize() {
       this.screenWidth = window.innerWidth
     },
+    async createGroup() {
+      const userCol = doc(db, "Users", this.currentUserUid)
+      const groupUid = this.generateUniqueID()
+      const groupName = this.createGroupString
+      this.createGroupString = ""
+      await setDoc(doc(db, "Users", groupUid), {
+        username: groupUid,
+        groupName: groupName,
+        avatarSrc: "https://firebasestorage.googleapis.com/v0/b/boolzapp2.appspot.com/o/groupchat.png?alt=media&token=41563ae9-9023-40db-a13e-bbf37fa71d1b",
+        messages: [],
+        partecipants: [this.userData.username],
+        description: "Hey there, I'm a Boolzap group!",
+        uid: groupUid,
+        type: "group"
+      })
+      await updateDoc(userCol, {
+        "groups": arrayUnion(
+          groupUid
+        )
+      })
+
+      await updateDoc(userCol, {
+        "activeChats": arrayUnion(
+          groupUid
+        )
+      })
+    },
+    async leaveGroup() {
+      const confirmation = window.confirm(`Are you sure you want to leave ${this.users[this.activeChat].groupName}`);
+
+      if (confirmation) {
+        const userDocRef = doc(db, "Users", this.currentUserUid);
+        const groupUid = this.users[this.activeChat].id;
+        this.activeChat = null
+        if (this.screenWidth <= 1024) {
+          this.openChats()
+        }
+        await updateDoc(userDocRef, {
+          "groups": arrayRemove(groupUid),
+          "activeChats": arrayRemove(groupUid)
+        });
+
+        const groupDocRef = doc(db, "Users", groupUid);
+        await updateDoc(groupDocRef, {
+          "partecipants": arrayRemove(this.userData.username)
+        });
+      } else {
+        console.log("User cancelled leaving the group.");
+      }
+    },
+    async addToGroup() {
+      const groupCol = doc(db, "Users", this.users[this.activeChat].id)
+      let newPart = []
+      this.groupAddArray.forEach(async (member) => {
+        await updateDoc(groupCol, {
+          "partecipants": arrayUnion(
+            member
+          )
+        })
+      })
+      this.groupAddArrayID.forEach(async (id) => {
+        let userCol = doc(db, "Users", id)
+        await updateDoc(userCol, {
+          "activeChats": arrayUnion(
+            this.users[this.activeChat].id
+          )
+        })
+      })
+      this.groupAddArray = []
+
+    },
+    addToGroupArray(index, event) {
+      if (event.target.checked) {
+        this.groupAddArray.push(this.users[index].username)
+        this.groupAddArrayID.push(this.users[index].id)
+        console.log(this.groupAddArrayID)
+      } else {
+        const removedUserIndex = this.groupAddArray.indexOf(this.users[index].username)
+        const removedUserIndexID = this.groupAddArray.indexOf(this.users[index].id)
+        this.groupAddArray.splice(removedUserIndex, 1)
+        this.groupAddArrayID.splice(removedUserIndexID, 1)
+        console.log(this.groupAddArrayID)
+      }
+
+    },
+    scrollToBottom() {
+      // Scroll to the bottom of the chat box
+      const chatBox = document.querySelector(".a-c-r-message-box");
+      if ((this.userData.messages[this.userData.messages.length - 1].from === this.users[this.activeChat].id) || (this.userData.messages[this.userData.messages.length - 1].to === this.users[this.activeChat].id))
+        chatBox.scrollTop = chatBox.scrollHeight;
+    },
+    scrollGroupToBottom() {
+      const chatBox = document.querySelector(".a-c-r-message-box");
+      chatBox.scrollTop = chatBox.scrollHeight;
+    },
     // async updateSeen() {
     //   console.log("?")
     //   const recCol = doc(db, "Users", this.currentChatUid)
@@ -1044,6 +1306,45 @@ export default {
         appRight.style.width = ""
         leftIcons.classList.remove("hidden")
       }
+    },
+
+    'userData.messages': {
+      handler(newValue, oldValue) {
+        if (newValue.length > oldValue.length) {
+          this.$nextTick(() => {
+            this.scrollToBottom();
+          })
+        }
+        // Check if both newValue and oldValue are arrays
+        if (Array.isArray(newValue) && Array.isArray(oldValue)) {
+          // Check if there are any new messages and if activeChat is defined
+          if (newValue.length > oldValue.length && this.activeChat) {
+
+
+            // Find the index of the user in the users array
+            const activeChatter = this.users[this.activeChat];
+            const index = this.users.findIndex(user => user.id === activeChatter.id);
+            if (index !== -1) {
+              // Move the user to the beginning of the array
+              this.users.unshift(this.users.splice(index, 1)[0]);
+              const activeChatterIndex = this.users.findIndex(user => user.id === activeChatter.id);
+              this.activeChat = activeChatterIndex;
+            }
+          }
+        }
+      },
+      deep: true // Watch for changes deeply in the array
+    },
+    'users[activeChat].messages': {
+      handler(newMessages, oldMessages) {
+        if (newMessages.length > oldMessages.length) {
+          console.log("new grp smg")
+          if (this.users[this.activeChat].type === "group") {
+            this.scrollGroupToBottom();
+          }
+        }
+      },
+      deep: true // Watch for changes in nested properties
     }
   }
 
