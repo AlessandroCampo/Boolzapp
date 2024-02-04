@@ -351,10 +351,10 @@ div img.groupmsgimg {
 
 @media screen and (max-width: 768px) {
     #app {
-        height: calc(100vh - 50px);
+        height: 100dvh;
     }
 
     body {
-        height: calc(100vh - 50px);
+        height: 100dvh;
     }
 }
