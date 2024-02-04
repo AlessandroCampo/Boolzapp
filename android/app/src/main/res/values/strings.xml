@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">boolzapp2</string>
+    <string name="title_activity_main">boolzapp2</string>
+    <string name="package_name">com.boolzapp2</string>
+    <string name="custom_url_scheme">com.boolzapp2</string>
+</resources>

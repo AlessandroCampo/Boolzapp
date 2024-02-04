@@ -1,0 +1,7 @@
+{
+  "name": "boolzapp2",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "custom"
+}

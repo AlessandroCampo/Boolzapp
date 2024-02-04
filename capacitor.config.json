@@ -1,0 +1,8 @@
+{
+  "appId": "com.boolzapp2",
+  "appName": "boolzapp2",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
