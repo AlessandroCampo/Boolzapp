@@ -54,15 +54,17 @@
           class="w-full px-2 py-1 text-base lg:text-lg xl:text-xl" v-model="chatFilterString">
       </div>
       <div class="a-c-l-chat-list flex-grow  bg-white scrollable-container overflow-y-scroll">
-        <div class="chat-left flex gap-3 py-2 px-6  items-center cursor-pointer w-full justify-around"
-          v-for="(user, index) in users" :key="index" v-show="user.username !== userData.username &&
+        <div
+          class="chat-left flex gap-3 py-2 px-6  items-center cursor-pointer w-full justify-around active-chat relative"
+          :class="userData.blockList.includes(user.username) ? 'opacity-50' : ''" v-for="(user, index) in users"
+          :key="index" v-show="user.username !== userData.username &&
             userData.activeChats.includes(user.username) &&
             (
               !chatFilterString ||
               user.username.toLowerCase().includes(chatFilterString.toLowerCase()) ||
               user.username.toLowerCase().startsWith(chatFilterString.toLowerCase())
             )
-            " @click="changeChat(index)">
+            " @click="changeChat(index, $event)">
           <div class="w-1/5">
             <img :src="user.avatarSrc ? user.avatarSrc : `../assets/empty_avatar.png`" alt="" class="avatar">
           </div>
@@ -71,8 +73,12 @@
             <span class="user-name text-gray-950">
               {{ user.type === "group" ? user.groupName : user.username }}
             </span>
+            <span class="font-bold text-gray-800 text-sm lg:text-regular"
+              v-if="userData.blockList.includes(user.username)">
+              HAI BLOCCATO QUESTO UTENTE
+            </span>
             <span class="last-seen text-xs text-gray-400 flex items-center gap-2"
-              v-if="user.messages[0] && user.messages[user.messages.length - 1].type === 'text' && (user.messages[user.messages.length - 1].to === currentUserUid || user.messages[user.messages.length - 1].from === currentUserUid)">
+              v-if="!userData.blockList.includes(user.username) && user.messages[0] && user.messages[user.messages.length - 1].type === 'text' && (user.messages[user.messages.length - 1].to === currentUserUid || user.messages[user.messages.length - 1].from === currentUserUid)">
               <span v-if="user.messages[user.messages.length - 1].from === currentUserUid"
                 class="font-bold text-gray-800"> INVIATO:</span>
               <span
@@ -82,9 +88,8 @@
               {{
                 user.messages[user.messages.length - 1].text }}
             </span>
-
             <span class="last-seen text-xs text-gray-400"
-              v-else-if="user.messages[0] && user.messages[user.messages.length - 1].type === 'audio' && (user.messages[user.messages.length - 1].to === currentUserUid || user.messages[user.messages.length - 1].from === currentUserUid)">
+              v-else-if="user.messages[0] && !userData.blockList.includes(user.username) && user.messages[user.messages.length - 1].type === 'audio' && (user.messages[user.messages.length - 1].to === currentUserUid || user.messages[user.messages.length - 1].from === currentUserUid)">
               <span v-if="user.messages[user.messages.length - 1].from === currentUserUid"
                 class="font-bold text-gray-800"> INVIATO:
               </span>
@@ -96,12 +101,16 @@
 
 
           </div>
-          <span class="text-sm lg:text-lg xl:text-xl text-gray-400 w-1/5 flex justify-center"
+          <span class="text-sm lg:text-regular text-gray-400 w-1/5 flex justify-center"
             v-if="user.messages[0] && (user.messages[user.messages.length - 1].to === currentUserUid || user.messages[user.messages.length - 1].from === currentUserUid)">
 
             {{ user.messages[user.messages.length - 1].time.split(" ")[1] }}
           </span>
           <span v-else class="w-1/5"></span>
+
+          <i class="fa-solid fa-circle-xmark text-lg lg:text-xl remove-icon text-red-400" @click="removeActiveChat(index)"
+            v-if="user.type !== 'group'"></i>
+
 
 
 
@@ -153,26 +162,30 @@
           </span> -->
         </div>
 
-        <div class="chat-left flex gap-3 py-2 px-4  items-center" v-for="(user, index) in users" :key="index" v-show="userData.contacts.length > 0 &&
-          user.username !== userData.username &&
-          userData.contacts.includes(user.username) &&
-          (
-            !contactsFilterString ||
-            user.username.toLowerCase().startsWith(contactsFilterString.toLowerCase())
-          )
-          " @click="pushChat(index)">
+        <div class="chat-left flex gap-3 py-2 px-4  items-center contact relative"
+          :class="userData.blockList.includes(user.username) ? 'opacity-50' : ''" v-for="(user, index) in users"
+          :key="index" v-show="userData.contacts.length > 0 &&
+            user.username !== userData.username &&
+            userData.contacts.includes(user.username) &&
+            (
+              !contactsFilterString ||
+              user.username.toLowerCase().startsWith(contactsFilterString.toLowerCase())
+            )
+            " @click="pushChat(index, $event)">
           <img :src="user.avatarSrc ? user.avatarSrc : `/assets/empty_avatar.png`" alt="" class="avatar">
           <div class="user-info text-2xl flex flex-col w-3/4">
             <span class="user-name text-gray-950">
               {{ user.username }}
             </span>
-            <span class="last-seen text-sm text-gray-400">
+            <span class="last-seen text-sm text-gray-400" v-if="!userData.blockList.includes(user.username)">
               {{ user.mood }}
             </span>
+            <span v-else class="text-gray-800 text-bold lg:text-regular text-sm">
+              HAI BLOCCATO QUESTO UTENTE
+            </span>
           </div>
-          <!-- <span class="last-message-time  text-gray-400 text-[8px]">
-              12:00
-            </span> -->
+          <i class="fa-solid fa-circle-xmark text-lg lg:text-xl remove-icon text-red-400"
+            @click="removeContact(index)"></i>
         </div>
 
 
@@ -272,6 +285,9 @@
           <i class="fa-solid fa-user-plus " @click="openGroupAdd"></i>
         </div>
         <i class="fas fa-arrow-left lg:hidden me-3 text-xl" @click="openChats"></i>
+        <i class="fa-solid fa-ban text-2xl text-red-600"
+          v-show="users[activeChat].type !== 'group' && !userData.blockList.includes(users[activeChat].username)"
+          @click="blockUser"></i>
       </div>
       <div
         class="a-c-r-message-box flex-grow bg-slate-400 px-4 lg:px-12 py-4 overflow-y-scroll relative scrollable-container">
@@ -289,14 +305,21 @@
             </li>
           </ul>
         </div>
-        <div class="message w-2/3 xl:w-2/5 lg:w-1/2" v-for="(    message, index    ) in      userData.messages     "
+        <p v-show="userData.blockList.includes(users[activeChat].username)"
+          class=" bg-white text-center w-fit px-2 py-1 block-p text-lg lg:text-xl">
+          Hai bloccato questo utente
+          <span class="text-green-700 text-bold cursor-pointer underline" @click="unblockUser"> fai click qui se desideri
+            Sbloccare
+            {{ users[activeChat].username }}</span>
+        </p>
+        <div class="message w-2/3 xl:w-2/5 lg:w-1/2" v-for="(     message, index     ) in       userData.messages      "
           :key="index" :class="{
             'from-user': currentUserUid !== message.to,
             'from-others': currentUserUid === message.to,
             'audio-content': message.type === 'audio'
           }
             "
-          v-show="(currentUserUid === message.from && currentChatUid === message.to && users[activeChat].type !== 'group') || (currentUserUid === message.to && currentChatUid === message.from && users[activeChat].type !== 'group')">
+          v-show="(currentUserUid === message.from && currentChatUid === message.to && users[activeChat].type !== 'group' && !userData.blockList.includes(users[activeChat].username)) || (currentUserUid === message.to && currentChatUid === message.from && users[activeChat].type !== 'group' && !userData.blockList.includes(users[activeChat].username))">
           <span class="message-content" v-if="message.type === 'text'">
             {{ message.text }}
             <img :src="message.media" alt="" v-if="message.media" class="w-1/2">
@@ -328,8 +351,8 @@
           </div>
 
         </div>
-        <div class="message w-2/3 xl:w-2/5 lg:w-1/2" v-for="(    message, index    ) in      users[activeChat].messages"
-          :key="index" :class="{
+        <div class="message w-2/3 xl:w-2/5 lg:w-1/2"
+          v-for="(     message, index     ) in       users[activeChat].messages " :key="index" :class="{
             'from-user': currentUserUid == message.from,
             'from-others': currentUserUid !== message.from,
             'audio-content': message.type === 'audio'
@@ -410,7 +433,7 @@
 
 
 <script>
-import { onSnapshot, collection, doc, deleteDoc, setDoc, addDoc, orderBy, query, getDoc } from "firebase/firestore";
+import { onSnapshot, collection, doc, deleteDoc, setDoc, addDoc, orderBy, query, getDoc, deleteField } from "firebase/firestore";
 import { updateDoc, arrayUnion, arrayRemove, serverTimestamp } from "firebase/firestore";
 import { db, storage } from "./firebase"
 import { onUnmounted, toHandlers } from "vue"
@@ -463,7 +486,7 @@ export default {
       currentUserUid: null,
       currentChatUid: null,
       userData: {
-        messages: [],
+        messages: ["Paperino"],
         activeChats: ["Paperino"],
         contacts: ["Paperino"],
         status: "X",
@@ -471,7 +494,8 @@ export default {
         avatarSrc: "ciao.png",
         mood: "depressed",
         groups: ["Paperino"],
-        type: "user"
+        type: "user",
+        blockList: ["Paperino"]
 
 
       },
@@ -572,13 +596,14 @@ export default {
           avatarSrc: this.user.avatarSrc ? this.user.avatarSrc : "https://firebasestorage.googleapis.com/v0/b/boolzapp2.appspot.com/o/empty_avatar.png?alt=media&token=b5a843bc-29c0-4b91-ada1-d4a34d844fdc",
           email: this.user.email,
           messages: [],
-          contacts: [],
-          activeChats: [],
+          contacts: ["Paperino"],
+          activeChats: ["Paperino"],
           mood: "Hey there, I'm using Boolzap!",
           uid: user.uid,
           status: "Offline",
           type: "user",
-          groups: []
+          groups: ["Paperino"],
+          blockList: ["Paperino"],
         });
 
         console.log("User successfully signed up!");
@@ -777,7 +802,10 @@ export default {
       }
       this.addUserString = ""
     },
-    async changeChat(index) {
+    async changeChat(index, event) {
+      if (event.target.classList.contains("remove-icon")) {
+        return
+      }
       let appLeft = this.$refs.appLeft
       let appRight = this.$refs.appRight
       let icons = this.$refs.leftBar_icons
@@ -797,7 +825,10 @@ export default {
       this.currentChatUid = this.users[this.activeChat].id
 
     },
-    async pushChat(index) {
+    async pushChat(index, event) {
+      if (event.target.classList.contains("remove-icon")) {
+        return
+      }
       this.activeChat = index
       const userCol = doc(db, "Users", this.currentUserUid)
       this.currentChatUid = this.users[this.activeChat].id
@@ -823,6 +854,12 @@ export default {
 
     },
     async sendMessage() {
+      if (this.userData.blockList.includes(this.users[this.activeChat].username)) {
+        window.alert("You can't message a blocked user, unblock if you want to resume the conversation")
+        this.currentText.text = '';
+        this.currentText.media = '';
+        return
+      }
       if (!this.currentText.text && !this.currentText.media) return
       if (!this.currentChatUid) {
         this.currentChatUid = this.users[this.activeChat].id
@@ -1003,7 +1040,10 @@ export default {
       this.can_record = true
     },
     async toggleMic(e) {
-      console.log("mci")
+      if (this.userData.blockList.includes(this.users[this.activeChat].username)) {
+        window.alert("You can't message a blocked user, unblock if you want to resume the conversation")
+        return
+      }
       const userCol = doc(db, "Users", this.currentUserUid);
       if (!this.can_record) return
       this.is_recording = !this.is_recording
@@ -1258,7 +1298,48 @@ export default {
       }
 
     },
+    async removeActiveChat(index) {
+      const userCol = doc(db, "Users", this.currentUserUid)
+      await updateDoc(userCol, {
+        "activeChats": arrayRemove(this.users[index].username)
+      })
+    },
+    async removeContact(index) {
+      const confirmation = window.confirm(`Are you sure you want to remove ${this.users[index].username} from your contacts?`);
+      if (!confirmation) {
+        return
+      }
+      const userCol = doc(db, "Users", this.currentUserUid)
+      await updateDoc(userCol, {
+        "contacts": arrayRemove(this.users[index].username)
+      })
+    },
+    async blockUser() {
+      const confirmation = window.confirm(`Are you sure you want to block ${this.users[this.activeChat].username}? `);
+      if (!confirmation) {
+        return
+      }
+
+      const userCol = doc(db, "Users", this.currentUserUid)
+      await updateDoc(userCol, {
+        "blockList": arrayUnion(this.users[this.activeChat].username)
+      })
+    },
+    async unblockUser() {
+      const confirmation = window.confirm(`Are you sure you want to unblock ${this.users[this.activeChat].username}? `);
+      if (!confirmation) {
+        return
+      }
+
+      const userCol = doc(db, "Users", this.currentUserUid)
+      await updateDoc(userCol, {
+        "blockList": arrayRemove(this.users[this.activeChat].username)
+      })
+    },
     scrollToBottom() {
+      if (!this.activeChat) {
+        return
+      }
       // Scroll to the bottom of the chat box
       const chatBox = document.querySelector(".a-c-r-message-box");
       if ((this.userData.messages[this.userData.messages.length - 1].from === this.users[this.activeChat].id) || (this.userData.messages[this.userData.messages.length - 1].to === this.users[this.activeChat].id))
@@ -1326,42 +1407,40 @@ export default {
 
     'userData.messages': {
       handler(newValue, oldValue) {
-        if (this.userData && newValue.length > oldValue.length) {
+        if (!this.userData) {
+          return
+        }
+        if (newValue.length > oldValue.length) {
           this.$nextTick(() => {
             this.scrollToBottom();
           })
         }
-        // Check if both newValue and oldValue are arrays
+
         if (Array.isArray(newValue) && Array.isArray(oldValue)) {
-          // Check if there are any new messages and if activeChat is defined
+
           if (newValue.length > oldValue.length && this.activeChat) {
+            const userMessages = this.userData.messages;
 
 
-            // Find the index of the user in the users array
-            const activeChatter = this.users[this.activeChat];
-            const index = this.users.findIndex(user => user.id === activeChatter.id);
-            if (index !== -1) {
-              // Move the user to the beginning of the array
-              this.users.unshift(this.users.splice(index, 1)[0]);
-              const activeChatterIndex = this.users.findIndex(user => user.id === activeChatter.id);
-              this.activeChat = activeChatterIndex;
+            const lastMessage = userMessages[userMessages.length - 1];
+            const activeChatterId = lastMessage.from === this.currentUserUid ? lastMessage.to : lastMessage.from;
+
+
+            const activeChatterIndex = this.users.findIndex(user => user.id === activeChatterId);
+
+            if (activeChatterIndex !== -1) {
+
+              const activeChatter = this.users.splice(activeChatterIndex, 1)[0];
+              this.users.unshift(activeChatter);
+
+
+
             }
           }
         }
       },
-      deep: true // Watch for changes deeply in the array
-    },
-    // 'users[activeChat].messages': {
-    //   handler(newMessages, oldMessages) {
-    //     if (newMessages.length > oldMessages.length) {
-    //       console.log("new grp smg")
-    //       if (this.users[this.activeChat].type === "group") {
-    //         this.scrollGroupToBottom();
-    //       }
-    //     }
-    //   },
-    //   deep: true // Watch for changes in nested properties
-    // }
+      deep: true
+    }
   }
 
 }
