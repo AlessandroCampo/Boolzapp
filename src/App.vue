@@ -53,8 +53,8 @@
         <input type="text" name="" id="" placeholder="Cerca o inizia una nuova chat"
           class="w-full px-2 py-1 text-base lg:text-lg xl:text-xl" v-model="chatFilterString">
       </div>
-      <div class="a-c-l-chat-list flex-grow  bg-white scrollable-container">
-        <div class="chat-left flex gap-3 py-2 px-6 border-b-2 items-center cursor-pointer w-full justify-around"
+      <div class="a-c-l-chat-list flex-grow  bg-white scrollable-container overflow-y-scroll">
+        <div class="chat-left flex gap-3 py-2 px-6  items-center cursor-pointer w-full justify-around"
           v-for="(user, index) in users" :key="index" v-show="user.username !== userData.username &&
             userData.activeChats.includes(user.username) &&
             (
@@ -107,8 +107,8 @@
 
         </div>
       </div>
-      <div class="off-canvas contacts">
-        <div class="off-canvas-top-bar  h-[70px] bg-[#55e188] flex items-center gap-3">
+      <div class="off-canvas contacts overflow-y-scroll scrollable-container">
+        <div class="off-canvas-top-bar  h-[70px] bg-[#55e188] flex items-center gap-3 ">
           <i class="fas fa-arrow-left ms-4 cursor-pointer text-xl" @click="closeContacts"></i>
           <h2 class="text-xl w-1/3 overflow-hidden break-keep whitespace-nowrap opacity-0" ref="newChatTitle">NUOVA CHAT
           </h2>
@@ -153,15 +153,14 @@
           </span> -->
         </div>
 
-        <div class="chat-left flex gap-3 py-2 px-4 border-b-2 overflow-y-scroll scrollable-container items-center"
-          v-for="(user, index) in users" :key="index" v-show="userData.contacts.length > 0 &&
-            user.username !== userData.username &&
-            userData.contacts.includes(user.username) &&
-            (
-              !contactsFilterString ||
-              user.username.toLowerCase().startsWith(contactsFilterString.toLowerCase())
-            )
-            " @click="pushChat(index)">
+        <div class="chat-left flex gap-3 py-2 px-4  items-center" v-for="(user, index) in users" :key="index" v-show="userData.contacts.length > 0 &&
+          user.username !== userData.username &&
+          userData.contacts.includes(user.username) &&
+          (
+            !contactsFilterString ||
+            user.username.toLowerCase().startsWith(contactsFilterString.toLowerCase())
+          )
+          " @click="pushChat(index)">
           <img :src="user.avatarSrc ? user.avatarSrc : `/assets/empty_avatar.png`" alt="" class="avatar">
           <div class="user-info text-2xl flex flex-col w-3/4">
             <span class="user-name text-gray-950">
@@ -172,9 +171,11 @@
             </span>
           </div>
           <!-- <span class="last-message-time  text-gray-400 text-[8px]">
-            12:00
-          </span> -->
+              12:00
+            </span> -->
         </div>
+
+
 
       </div>
       <div class="off-canvas addToGroup w-full border-2">
@@ -1322,7 +1323,7 @@ export default {
 
     'userData.messages': {
       handler(newValue, oldValue) {
-        if (newValue.length > oldValue.length) {
+        if (this.userData && newValue.length > oldValue.length) {
           this.$nextTick(() => {
             this.scrollToBottom();
           })
@@ -1347,17 +1348,17 @@ export default {
       },
       deep: true // Watch for changes deeply in the array
     },
-    'users[activeChat].messages': {
-      handler(newMessages, oldMessages) {
-        if (newMessages.length > oldMessages.length) {
-          console.log("new grp smg")
-          if (this.users[this.activeChat].type === "group") {
-            this.scrollGroupToBottom();
-          }
-        }
-      },
-      deep: true // Watch for changes in nested properties
-    }
+    // 'users[activeChat].messages': {
+    //   handler(newMessages, oldMessages) {
+    //     if (newMessages.length > oldMessages.length) {
+    //       console.log("new grp smg")
+    //       if (this.users[this.activeChat].type === "group") {
+    //         this.scrollGroupToBottom();
+    //       }
+    //     }
+    //   },
+    //   deep: true // Watch for changes in nested properties
+    // }
   }
 
 }
