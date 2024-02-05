@@ -830,16 +830,20 @@ export default {
       const userCol = doc(db, "Users", this.currentUserUid)
       const recipientCol = doc(db, "Users", this.currentChatUid)
       const timeStamp = this.getCurrentDateTimeString()
+      const sentText = this.currentText.text
+      const sentMedia = this.currentText.media
+      this.currentText.text = '';
+      this.currentText.media = '';
       await updateDoc(userCol, {
         "messages": arrayUnion({
           type: "text",
           time: timeStamp,
-          text: this.currentText.text,
+          text: sentText,
           to: this.currentChatUid,
           from: this.currentUserUid,
           from_name: this.userData.username,
           from_avatarSrc: this.userData.avatarSrc,
-          media: this.currentText.media,
+          media: sentMedia,
           seen: false
         }),
       })
@@ -850,12 +854,12 @@ export default {
         "messages": arrayUnion({
           type: "text",
           time: timeStamp,
-          text: this.currentText.text,
+          text: sentText,
           to: this.currentChatUid,
           from: this.currentUserUid,
           from_name: this.userData.username,
           from_avatarSrc: this.userData.avatarSrc,
-          media: this.currentText.media,
+          media: sentMedia,
           seen: false
         }),
       })
@@ -864,8 +868,7 @@ export default {
           this.userData.username
         ),
       })
-      this.currentText.text = '';
-      this.currentText.media = '';
+
     }
     ,
     retrieveData() {
